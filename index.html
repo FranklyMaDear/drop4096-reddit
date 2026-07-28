@@ -1007,13 +1007,13 @@
 
             function loadSave() {
                 try {
-                    const r = localStorage.getItem("drop2048-frankly-v16");
+                    const r = localStorage.getItem("drop2048-frankly-v17");
                     if (r) save = Object.assign({}, DEFAULT_SAVE, JSON.parse(r));
                 } catch (e) { console.warn('Load save error', e); }
             }
 
             function persist() {
-                try { localStorage.setItem("drop2048-frankly-v16", JSON.stringify(save)); } catch (e) {}
+                try { localStorage.setItem("drop2048-frankly-v17", JSON.stringify(save)); } catch (e) {}
             }
 
             let coins = 0, level = 0, score = 0, muted = false;
@@ -2080,7 +2080,7 @@
 
             // ============================================================
             //   Ο ΠΥΡΗΝΑΣ ΤΟΥ ΠΑΙΧΝΙΔΙΟΥ (ΑΠΟ ΤΟ ΑΡΧΙΚΟ ΣΟΥ ΑΡΧΕΙΟ)
-            //   ΔΙΑΤΗΡΗΜΕΝΟΣ ΑΥΤΟΥΣΙΟΣ.
+            //   ΔΙΑΤΗΡΗΜΕΝΟΣ ΑΥΤΟΥΣΙΟΣ. ΠΡΟΣΤΕΘΗΚΕ ΜΟΝΟ ΚΑΘΑΡΙΣΜΟΣ ΣΤΟ spawnCurrent.
             // ============================================================
 
             function newBoard() { 
@@ -2116,6 +2116,13 @@
             }
 
             function spawnCurrent() { 
+                // --- ΔΙΟΡΘΩΣΗ: Καθαρισμός του παγωμένου κύβου πριν δημιουργηθεί νέος ---
+                if (currentCube) {
+                    boardGroup.remove(currentCube);
+                    currentCube = null;
+                }
+                // --- ΤΕΛΟΣ ΔΙΟΡΘΩΣΗΣ ---
+
                 let maxOnBoard = 4; 
                 for (let c = 0; c < COLS; c++)
                     for (let r = 0; r < ROWS; r++) if (grid[c][r]) maxOnBoard = Math.max(maxOnBoard, grid[c][r].value); 
@@ -2948,7 +2955,7 @@
             // ============================================================
             (function() {
                 try { 
-                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12', 'drop2048-frankly-v13', 'drop2048-frankly-v14', 'drop2048-frankly-v15'];
+                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12', 'drop2048-frankly-v13', 'drop2048-frankly-v14', 'drop2048-frankly-v15', 'drop2048-frankly-v16'];
                     keys.forEach(function(k) { localStorage.removeItem(k); }); 
                 } catch (e) {}
 
@@ -3086,7 +3093,6 @@
                             col = Math.max(0, Math.min(COLS - 1, col));
                             setAim(col); 
                         });
-                        // ΕΔΩ ΓΙΝΕΤΑΙ ΤΟ ATTACH ΤΗΣ onTap
                         cvs.addEventListener("pointerdown", onTap); 
                         if (!window.PointerEvent) { cvs.addEventListener("touchstart", onTap, { passive: true }); }
 
