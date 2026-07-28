@@ -648,26 +648,6 @@
             background: #FFF5E1;
             box-shadow: 0 0 10px rgba(242, 160, 61, 0.4);
         }
-        .shop-item .ad-btn {
-            display: inline-block;
-            background: #e74c3c;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 5px 10px;
-            font-size: 11px;
-            font-weight: 800;
-            cursor: pointer;
-            font-family: inherit;
-            margin-top: 2px;
-            transition: .1s;
-            box-shadow: 0 3px 0 #a93226;
-            width: 100%;
-        }
-        .shop-item .ad-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 0 #a93226;
-        }
         .btn {
             border: none;
             cursor: pointer;
@@ -700,6 +680,23 @@
             z-index: 35;
         }
 
+        /* Timer */
+        #timer {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 22px;
+            font-family: monospace;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
         @media (max-width: 480px) {
             #missionPanel { padding: 8px 6px; min-width: 50px; }
             .mission-label { font-size: 11px; }
@@ -724,6 +721,7 @@
             #toast { font-size: 12px; padding: 6px 14px; bottom: 80px; }
             .shop-items { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 5px; }
             .shop-item h3 { font-size: 11px; }
+            #timer { top: 70px; right: 10px; font-size: 18px; padding: 5px 12px; }
         }
         @media (max-width: 380px) {
             .shop-panel .chip { font-size: 11px; padding: 4px 6px; }
@@ -757,7 +755,7 @@
     <div class="shop-panel" id="shopPanel">
         <div class="chip"><div><small id="lblLevel">LEVEL</small><span class="big" id="hudLevel">1</span></div></div>
         <div class="chip score-chip"><div><small id="lblScore">SCORE</small><span class="big" id="hudScore">0</span></div></div>
-        <div class="chip coin-chip">🪙 <span class="big" id="hudCoins">100</span></div>
+        <div class="chip coin-chip">💎 <span class="big" id="hudCoins">100</span></div>
         <button class="hud-btn icon-btn" id="btnSound">🔊</button>
         <button class="hud-btn icon-btn" id="btnLang">EN</button>
         <button class="hud-btn" id="btnShop">🛒</button>
@@ -768,14 +766,17 @@
     </div>
 
     <div class="help-panel" id="helpPanel">
-        <button class="pbtn" id="btnMagnet">🧲<span class="cost">📺 Ad</span></button>
-        <button class="pbtn" id="btnHammer">🔨<span class="cost">📺 Ad</span></button>
-        <button class="pbtn" id="btnShuffle">🔄<span class="cost">📺 Ad</span></button>
+        <button class="pbtn" id="btnMagnet">🧲<span class="cost">50💎</span></button>
+        <button class="pbtn" id="btnHammer">🔨<span class="cost">50💎</span></button>
+        <button class="pbtn" id="btnShuffle">🔄<span class="cost">50💎</span></button>
         <button class="pbtn" id="btnMic">🎤<span class="cost" id="micCost">Talk</span></button>
     </div>
 
     <div id="speech"><span id="speechText">WOW!</span></div>
     <div id="toast"></div>
+
+    <!-- Χρονόμετρο Time Attack -->
+    <div id="timer" class="hidden">03:00</div>
 
     <div class="overlay hidden" id="shopModal">
         <div class="card">
@@ -799,6 +800,7 @@
         </div>
     </div>
 
+    <!-- Win Modal (δεν χρησιμοποιείται πια, αλλά το αφήνουμε) -->
     <div class="overlay hidden win-lose-overlay" id="winModal">
         <div class="card">
             <div style="font-size:40px; margin-bottom:6px;">🎉</div>
@@ -806,17 +808,31 @@
             <p id="winText"></p>
         </div>
     </div>
+
+    <!-- Lose Modal -->
     <div class="overlay hidden win-lose-overlay" id="loseModal">
         <div class="card">
             <div style="font-size:40px; margin-bottom:6px;">😵</div>
             <h2 id="loseTitle">The board is full!</h2>
             <p id="loseText"></p>
-            <button class="btn" id="btnRevive" style="background:#5c7a3a; box-shadow: 0 4px 0 #3a4d25;">📺 Watch the ad to continue</button>
+            <button class="btn" id="btnShareLose" style="background:#4A7DBF; box-shadow:0 4px 0 #2d5a7a; margin-top:8px;">📤 Share Score</button>
+            <button class="btn" id="btnPlayAgainLose" style="background:#5c7a3a; box-shadow:0 4px 0 #3a4d25; margin-top:4px;">🔄 Play Again</button>
         </div>
     </div>
 
-    <!-- Tutorial Αρχικής Οθόνης -->
-    <div class="overlay" id="tutorialModal">
+    <!-- Time Up Modal -->
+    <div class="overlay hidden win-lose-overlay" id="timeUpModal">
+        <div class="card">
+            <div style="font-size:40px; margin-bottom:6px;">⏰</div>
+            <h2 id="timeUpTitle">Time's Up!</h2>
+            <p id="timeUpText"></p>
+            <button class="btn" id="btnShareTimeUp" style="background:#4A7DBF; box-shadow:0 4px 0 #2d5a7a; margin-top:8px;">📤 Share Score</button>
+            <button class="btn" id="btnPlayAgainTimeUp" style="background:#5c7a3a; box-shadow:0 4px 0 #3a4d25; margin-top:4px;">🔄 Play Again</button>
+        </div>
+    </div>
+
+    <!-- Main Menu (πρώην tutorialModal) -->
+    <div class="overlay" id="mainMenu">
         <div class="card" style="max-width:420px;">
             <div style="font-size:60px; margin-bottom:8px;">🎲</div>
             <h2 id="tutorialTitle" style="font-size:32px; margin:0 0 10px;">DROP 4096</h2>
@@ -827,7 +843,10 @@
                     <b>💡 Tip:</b> Keep the big cubes at the edges to avoid filling the board!
                 </p>
             </div>
-            <button class="btn" id="btnStartTutorial" style="margin-top:0;">🎮 Start!</button>
+            <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; justify-content:center;">
+                <button class="btn" id="btnClassic" style="flex:1; min-width:120px;">Classic Mode</button>
+                <button class="btn" id="btnTimeAttack" style="flex:1; min-width:120px; background:#5c7a3a; box-shadow:0 4px 0 #3a4d25;">Time Attack (3 Mins)</button>
+            </div>
         </div>
     </div>
 
@@ -837,13 +856,13 @@
         (function() {
             'use strict';
 
-            // ===== Reddit Safe Mock Ad =====
-            function monetagAd() {
-                return new Promise((resolve) => {
-                    setTimeout(resolve, 3000);
-                });
-            }
-            let _sdkPaused = false;
+            // ===== Game Modes & State =====
+            let gameMode = 'classic'; // 'classic' or 'timeattack'
+            let timeRemaining = 180; // seconds
+            let timerInterval = null;
+            let gameOver = false;
+            let bestClassic = 0;
+            let bestTimeAttack = 0;
 
             const COLS = 5,
                 ROWS = 6,
@@ -866,13 +885,13 @@
                     tab_cubes: 'Cubes', tab_boards: 'Boards', tab_effects: 'Effects', tab_sounds: 'Sounds',
                     tab_music: 'Music', tab_pets: 'Aziram', sub_hair: '💇 Hair', sub_clothes: '👗 Clothes',
                     sub_shoes: '👟 Shoes', sub_props: '🎈 Item', win_title: 'Level Complete!',
-                    win_btn: '📺 Watch the ad to continue', lose_title: 'The board is full!',
-                    revive_btn: '📺 Watch the ad to continue', mission_label: 'MISSION',
-                    shop_tab: '🛒 SHOP', help_tab: '❓ HELP', ad_cost: '📺 Ad', ad_fail: 'Ad failed or skipped.',
-                    win_text: function(t) { return 'You made ' + t + '!<br>+25 🪙<br>The game continues!'; },
+                    lose_title: 'The board is full!',
+                    mission_label: 'MISSION',
+                    shop_tab: '🛒 SHOP', help_tab: '❓ HELP',
+                    win_text: function(t) { return 'You made ' + t + '!<br>+25 💎<br>The game continues!'; },
                     lose_text: function(s) { return 'Score: <b>' + s + '</b>'; },
                     mission: function(t) { return '🎯 Mission: make a ' + t + ' cube!'; },
-                    hammer_toast: '🔨 Pick a cube', no_pairs: 'No pairs!', not_enough: 'Not enough coins!',
+                    hammer_toast: '🔨 Pick a cube', no_pairs: 'No pairs!', not_enough: 'Not enough diamonds!',
                     bought: function(n) { return 'You bought ' + n + '!'; },
                     picked: function(n) { return 'Selected: ' + n; }, cube_changed: 'Cube look changed!',
                     effect_changed: 'Effect changed!', sound_changed: 'Sound changed!',
@@ -880,8 +899,6 @@
                     mic_unsupported: '🎤 is not supported here', mic_ask: '🎤 Ask me something...',
                     mic_fail: "I didn't hear you 😅 Try again", mic_noopen: "Couldn't open the 🎤",
                     muted: '🔇 Sound off', unmuted: '🔊 Sound on',
-                    ad_title: 'Watch a short ad', ad_text: 'Watch an ad to unlock this for free!',
-                    ad_btn: '▶️ Watch Ad', ad_cancel: 'Cancel', ad_free: '📺 Free',
                     greetings: ['Hi there! 😊', 'Hee hee! 😄', 'Wanna play? 🎮', "I'm Aziram! 💖", "Let's make big cubes! 🎲", "You're doing great! 🌟", "I love games! 🥰"],
                     angry: 'The board is filling up! 😠', panic: 'PANIC!! 😱', bored: 'So bored... 🥱',
                     wow: function(v) { return 'WOW! ' + v + '! 🤩'; },
@@ -897,13 +914,13 @@
                     tab_cubes: 'Κύβοι', tab_boards: 'Ταμπλό', tab_effects: 'Εφέ', tab_sounds: 'Ήχοι',
                     tab_music: 'Μουσική', tab_pets: 'Aziram', sub_hair: '💇 Μαλλιά', sub_clothes: '👗 Ρούχα',
                     sub_shoes: '👟 Παπούτσια', sub_props: '🎈 Αντικείμενο', win_title: 'Το Επίπεδο Ολοκληρώθηκε!',
-                    win_btn: '📺 Δείτε τη διαφήμιση για συνέχεια', lose_title: 'Το ταμπλό γέμισε!',
-                    revive_btn: '📺 Δείτε τη διαφήμιση για συνέχεια', mission_label: 'ΑΠΟΣΤΟΛΗ',
-                    shop_tab: '🛒 ΜΑΓΑΖΙ', help_tab: '❓ ΒΟΗΘΕΙΑ', ad_cost: '📺 Διαφ.', ad_fail: 'Η διαφήμιση απέτυχε ή παραλείφθηκε.',
-                    win_text: function(t) { return 'Έφτιαξες ' + t + '!<br>+25 🪙<br>Το παιχνίδι συνεχίζεται!'; },
+                    lose_title: 'Το ταμπλό γέμισε!',
+                    mission_label: 'ΑΠΟΣΤΟΛΗ',
+                    shop_tab: '🛒 ΜΑΓΑΖΙ', help_tab: '❓ ΒΟΗΘΕΙΑ',
+                    win_text: function(t) { return 'Έφτιαξες ' + t + '!<br>+25 💎<br>Το παιχνίδι συνεχίζεται!'; },
                     lose_text: function(s) { return 'Σκορ: <b>' + s + '</b>'; },
                     mission: function(t) { return '🎯 Αποστολή: φτιάξε κύβο ' + t + '!'; },
-                    hammer_toast: '🔨 Επίλεξε κύβο', no_pairs: 'Κανένα ζευγάρι!', not_enough: 'Δεν έχεις αρκετά νομίσματα!',
+                    hammer_toast: '🔨 Επίλεξε κύβο', no_pairs: 'Κανένα ζευγάρι!', not_enough: 'Δεν έχεις αρκετά διαμάντια!',
                     bought: function(n) { return 'Αγόρασες το ' + n + '!'; },
                     picked: function(n) { return 'Επιλέχθηκε: ' + n; }, cube_changed: 'Η εμφάνιση κύβου άλλαξε!',
                     effect_changed: 'Το εφέ άλλαξε!', sound_changed: 'Ο ήχος άλλαξε!',
@@ -911,8 +928,6 @@
                     mic_unsupported: 'Το 🎤 δεν υποστηρίζεται εδώ', mic_ask: '🎤 Ρώτα με κάτι...',
                     mic_fail: 'Δεν σε άκουσα 😅 Ξαναδοκίμασε', mic_noopen: 'Δεν άνοιξε το 🎤',
                     muted: '🔇 Ήχος κλειστός', unmuted: '🔊 Ήχος ανοιχτός',
-                    ad_title: 'Δες μια σύντομη διαφήμιση', ad_text: 'Δες μια διαφήμιση για να το ξεκλειδώσεις δωρεάν!',
-                    ad_btn: '▶️ Δες διαφήμιση', ad_cancel: 'Ακύρωση', ad_free: '📺 Δωρεάν',
                     greetings: ['Γεια σου! 😊', 'Χι χι! 😄', 'Παίζουμε; 🎮', 'Είμαι η Aziram! 💖', 'Πάμε για μεγάλους κύβους! 🎲', 'Τα πας περίφημα! 🌟', 'Λατρεύω τα παιχνίδια! 🥰'],
                     angry: 'Γεμίζει το ταμπλό! 😠', panic: 'ΠΑΝΙΚΟΣ!! 😱', bored: 'Βαριέμαι... 🥱',
                     wow: function(v) { return 'WOW! ' + v + '! 🤩'; },
@@ -1026,7 +1041,7 @@
             let currentPetSubTab = 'pet_hair';
 
             const DEFAULT_SAVE = {
-                coins: 100, level: 0, best: 0, score: 0, lang: 'en', muted: false,
+                coins: 100, level: 0, score: 0, lang: 'en', muted: false,
                 ownedCubes: ['wood'], equippedCube: 'wood',
                 ownedBoards: ['board_wood'], equippedBoard: 'board_wood',
                 ownedEffects: ['eff_none'], equippedEffect: 'eff_none',
@@ -1035,23 +1050,24 @@
                 ownedHair: ['hair_pigtails'], equippedHair: 'hair_pigtails',
                 ownedClothes: ['cl_none'], equippedClothes: 'cl_none',
                 ownedShoes: ['shoe_wood'], equippedShoes: 'shoe_wood',
-                ownedProps: ['prop_none'], equippedProps: 'prop_none'
+                ownedProps: ['prop_none'], equippedProps: 'prop_none',
+                bestClassic: 0, bestTimeAttack: 0
             };
 
             let save = Object.assign({}, DEFAULT_SAVE);
 
             function loadSave() {
                 try {
-                    const r = localStorage.getItem("drop2048-frankly-v12");
+                    const r = localStorage.getItem("drop2048-frankly-v13");
                     if (r) save = Object.assign({}, DEFAULT_SAVE, JSON.parse(r));
                 } catch (e) { console.warn('Load save error', e); }
             }
 
             function persist() {
-                try { localStorage.setItem("drop2048-frankly-v12", JSON.stringify(save)); } catch (e) {}
+                try { localStorage.setItem("drop2048-frankly-v13", JSON.stringify(save)); } catch (e) {}
             }
 
-            let coins = 0, level = 0, score = 0, best = 0, muted = false;
+            let coins = 0, level = 0, score = 0, muted = false;
             let shopPanelOpen = false, helpPanelOpen = false;
 
             const audioCtx = new(window.AudioContext || window.webkitAudioContext)();
@@ -1213,7 +1229,7 @@
                     if (has('how are you', 'are you ok', 'are you okay')) return "I'm great! Ready for cubes!";
                     if (has('score', 'points')) return "Your score is " + score + " points! Keep going!";
                     if (has('level', 'stage')) return "We're on level " + (level + 1) + "!";
-                    if (has('coins', 'money')) return "You have " + coins + " coins! Shall we go shopping?";
+                    if (has('coins', 'money')) return "You have " + coins + " diamonds! Shall we go shopping?";
                     if (has('mission', 'goal', 'what should')) return "Our mission: make a " + levelTarget(level) + " cube!";
                     if (has('joke', 'funny')) {
                         const jokes = ["Why did the cube go to school? To become a square brain!", "What does 2 say to 2? Let's become a 4!", "My pigtails dance when I jump!", "My favourite food? Sugar cubes, of course!", "Why was the math book sad? Because it had too many problems!", "I tried to catch some fog earlier... but I mist!"];
@@ -1232,7 +1248,7 @@
                 if (has('τι κανεις', 'πως εισαι', 'εισαι καλα', 'ολα καλα')) return "Τέλεια είμαι! Έτοιμη για κύβους!";
                 if (has('σκορ', 'ποντο')) return "Το σκορ σου είναι " + score + " πόντοι! Συνέχισε!";
                 if (has('επιπεδο', 'πιστα')) return "Είμαστε στο επίπεδο " + (level + 1) + "!";
-                if (has('νομισματα', 'λεφτα', 'χρηματα', 'κερματα')) return "Έχεις " + coins + " νομίσματα! Πάμε για ψώνια;";
+                if (has('νομισματα', 'λεφτα', 'χρηματα', 'κερματα')) return "Έχεις " + coins + " διαμάντια! Πάμε για ψώνια;";
                 if (has('αποστολη', 'στοχος', 'τι πρεπει')) return "Η αποστολή μας: φτιάξε κύβο " + levelTarget(level) + "!";
                 if (has('ανεκδοτο', 'αστειο', 'πες κατι αστειο')) {
                     const jokes = ["Γιατί ο κύβος πήγε σχολείο; Για να γίνει τετράγωνο μυαλό!", "Τι λέει το 2 στο 2; Έλα να γίνουμε 4άρι!", "Τα κοτσιδάκια μου χορεύουν όταν χοροπηδάω!", "Ξέρεις ποιο είναι το αγαπημένο μου φαγητό; Τα κυβάκια ζάχαρης!", "Τι κάνει μια μέλισσα όταν βήχει; Μελάκια!", "Πώς λέγεται το έξυπνο μπουκάλι; Μπουκαλόγος!"];
@@ -2002,9 +2018,9 @@
                 cellMat.color.set(bData.cell); }
 
             function onResize() { 
-                // Fallback για κινητά που μπορεί να επιστρέφουν 0 στην αρχή
                 const width = window.innerWidth || document.documentElement.clientWidth || 360;
                 const height = window.innerHeight || document.documentElement.clientHeight || 640;
+                if (width === 0 || height === 0) return;
                 renderer.setSize(width, height);
                 camera.aspect = width / height; 
                 const dist = (BOARD_H / 2 + 3.5) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
@@ -2114,7 +2130,8 @@
             function newBoard() { for (let c = 0; c < COLS; c++)
                     for (let r = 0; r < ROWS; r++) { if (grid[c] && grid[c][r]) boardGroup.remove(grid[c][r].mesh); }
                 grid = []; for (let c = 0; c < COLS; c++) { grid.push(new Array(ROWS).fill(null)); }
-                score = save.score || 0;
+                score = 0;
+                save.score = 0;
                 updateHUD(); for (let i = 0; i < levelPreset(level); i++) { const c = Math.floor(Math.random() * COLS); const r = colHeight(c); if (r < 3) placeCube(c, r, [2, 4, 8, 16][Math.floor(Math.random() * 4)], true); }
                 spawnCurrent();
                 updateMissionProgress();
@@ -2174,7 +2191,7 @@
                 elem.style.top = (y + 8) + 'px';
             }
 
-            function launch() { if (busy || !currentCube) return; const c = aimCol; const h = colHeight(c); if (h >= ROWS) { gameOver(); return; }
+            function launch() { if (busy || !currentCube || gameOver) return; const c = aimCol; const h = colHeight(c); if (h >= ROWS) { gameOver = true; gameOverHandler(); return; }
                 busy = true;
                 lastActionTime = performance.now();
                 playSound('drop'); const eff = save.equippedEffect; if (eff !== 'eff_none') { const wp = new THREE.Vector3();
@@ -2185,12 +2202,13 @@
                 function() { boardGroup.remove(cube); const cell = placeCube(c, targetR, cube.userData.value, true);
                     cell.mesh.scale.set(1.15, 0.85, 1.15);
                     tween(cell.mesh.scale, { x: 1, y: 1, z: 1 }, 0.18);
-                    resolveMerges([{ c: c, r: targetR }]).then(function() { if (checkWin()) { busy = false;
-                            spawnCurrent();
-                            setAim(aimCol); return; } if (isBoardFull()) { gameOver(); return; }
+                    resolveMerges([{ c: c, r: targetR }]).then(function() { 
+                        checkWin(); // will level up if target reached, without modal
+                        if (gameOver) return; 
                         busy = false;
                         spawnCurrent();
-                        setAim(aimCol); }); }); }
+                        setAim(aimCol); 
+                    }); }); }
 
             function isBoardFull() { for (let c = 0; c < COLS; c++)
                     for (let r = 0; r < ROWS; r++) if (!grid[c][r]) return false; return true; }
@@ -2217,14 +2235,13 @@
                             cell.mesh.getWorldPosition(wp); const etype = eff.replace('eff_', ''); if (etype === 'explode') spawnBurst(wp.x, wp.y, wp.z, 'explode', 20); else if (etype === 'confetti') spawnBurst(wp.x, wp.y, wp.z, 'confetti', 25); else spawnBurst(wp.x, wp.y, wp.z, etype, 12); } if (newVal >= 64 && winTime <= 0) { reactionTime = 1.2;
                             showSpeech(TT().wow(newVal), 1800); }
 
-                        if (newVal >= 128 && !shownAchievements[newVal] && !document.querySelector("#loseModal:not(.hidden)")) {
+                        if (newVal >= 128 && !shownAchievements[newVal] && !gameOver) {
                             shownAchievements[newVal] = true;
-                            // Δεν κάνουμε pop-up διαφήμισης, απλά δίνουμε έξτρα νομίσματα
                             coins += 5;
                             save.coins = coins;
                             persist();
                             updateHUD();
-                            toast("🎉 Achievement +5 coins!");
+                            toast("🎉 Achievement +5 diamonds!");
                         }
 
                         boardGroup.remove(cell.mesh);
@@ -2240,47 +2257,52 @@
                         setTimeout(next, 120); }
                 })(); }); }
 
-            let winTimer = null;
-            let winShown = false;
-
-            function advanceLevel() {
+            // ===== Level up without modal =====
+            function checkWin() { 
+                const t = levelTarget(level); 
+                let win = false; 
+                for (let c = 0; c < COLS; c++)
+                    for (let r = 0; r < ROWS; r++) 
+                        if (grid[c][r] && grid[c][r].value >= t) { win = true; break; } 
+                if (!win) return false; 
+                // Level up
                 level = level + 1;
-                winShown = false;
-                busy = false;
+                coins += 25;
+                save.coins = coins;
+                save.level = level;
+                persist();
                 updateHUD();
-                announceMission(300);
-                toast("🎉 Level " + (level + 1) + "!");
+                updateMissionProgress();
+                // No modal, just continue
+                return false; 
             }
 
-            function checkWin() { const t = levelTarget(level); let win = false; for (let c = 0; c < COLS; c++)
-                    for (let r = 0; r < ROWS; r++) if (grid[c][r] && grid[c][r].value >= t) { win = true; break; } if (!win) return false; if (!winShown) { winShown = true;
-                    coins += 25;
-                    save.coins = coins;
-                    best = Math.max(best, score);
-                    save.best = best;
-                    save.level = level + 1;
-                    persist();
-                    updateHUD();
-                    playWinSound();
-                    winTime = 6.0;
-                    showSpeech(TT().win_speech, 3800);
-                    speak(TT().win_say); 
-                    if (winTimer) clearTimeout(winTimer);
-                    winTimer = setTimeout(advanceLevel, 3500);
-                } return true; }
-
-            function gameOver() { busy = true;
-                best = Math.max(best, score);
-                save.best = best;
-                save.score = 0;
+            // ===== Game Over handling =====
+            function gameOverHandler() {
+                busy = true;
+                gameOver = true;
+                // Stop timer if running
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                // Update best score
+                if (gameMode === 'classic') {
+                    if (score > save.bestClassic) save.bestClassic = score;
+                } else {
+                    if (score > save.bestTimeAttack) save.bestTimeAttack = score;
+                }
                 persist();
                 showSpeech(TT().lose_speech, 2500);
                 speak(TT().lose_say);
-                document.getElementById("loseText").innerHTML = TT().lose_text(score);
-                document.getElementById("loseModal").classList.remove("hidden"); }
+                document.getElementById("loseText").innerHTML = TT().lose_text(score) + 
+                    (gameMode === 'classic' ? '<br>Best: ' + save.bestClassic : '<br>Best: ' + save.bestTimeAttack);
+                document.getElementById("loseModal").classList.remove("hidden");
+            }
 
             function onTap(e) { 
                 if (document.querySelector(".overlay:not(.hidden)")) return;
+                if (gameOver) return;
                 lastActionTime = performance.now(); 
                 const cx = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
                 const cy = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY; 
@@ -2338,79 +2360,130 @@
                 }
             }
 
-            let adCallback = null;
-            let adTimer = null;
+            // ===== Helpers (Magnet, Hammer, Shuffle) with diamond cost =====
+            document.getElementById("btnHammer").onclick = function() { 
+                if (busy || gameOver) return;
+                if (coins < 50) { toast(TT().not_enough); return; }
+                coins -= 50;
+                save.coins = coins;
+                persist();
+                updateHUD();
+                hammerMode = true;
+                toast(TT().hammer_toast);
+                playSound('hammer'); 
+            };
 
-            function showAd(callback) {
-                // Στο Reddit, απλώς χρησιμοποιούμε το mock ad.
-                monetagAd().then(() => {
-                    if (callback) callback();
-                });
-            }
+            document.getElementById("btnShuffle").onclick = function() { 
+                if (busy || !currentCube || gameOver) return;
+                if (coins < 50) { toast(TT().not_enough); return; }
+                coins -= 50;
+                save.coins = coins;
+                persist();
+                updateHUD();
+                boardGroup.remove(currentCube);
+                currentCube = null;
+                spawnCurrent();
+                setAim(aimCol);
+                playSound('shuffle'); 
+            };
 
-            document.getElementById("btnHammer").onclick = function() { if (busy) return;
-                showAd(function() { hammerMode = true;
-                    updateHUD();
-                    toast(TT().hammer_toast);
-                    playSound('hammer'); }); };
-            document.getElementById("btnShuffle").onclick = function() { if (busy || !currentCube) return;
-                showAd(function() { boardGroup.remove(currentCube);
-                    currentCube = null;
-                    spawnCurrent();
-                    setAim(aimCol);
-                    updateHUD();
-                    playSound('shuffle'); }); };
-            document.getElementById("btnMagnet").onclick = function() { if (busy) return;
-                showAd(function() { let tilesByVal = {}; for (let c = 0; c < COLS; c++)
-                        for (let r = 0; r < ROWS; r++) if (grid[c][r]) { let v = grid[c][r].value; if (!tilesByVal[v]) tilesByVal[v] = [];
-                            tilesByVal[v].push({ c: c, r: r, cell: grid[c][r] }); } let mg = Object.keys(tilesByVal).map(function(k) { return tilesByVal[k]; }).filter(function(g) { return g.length > 1; }); if (!mg.length) { toast(TT().no_pairs); return; }
-                    busy = true;
-                    playSound('magnet'); let animsP = 0;
-                    mg.forEach(function(group) { const trg = group[0];
-                        trg.newVal = trg.cell.value * Math.pow(2, group.length - 1);
-                        group.slice(1).forEach(function(t) { const m = t.cell.mesh;
-                            grid[t.c][t.r] = null; const tp = cellPos(trg.c, trg.r);
-                            animsP++;
-                            tween(m.position, { x: tp.x, y: tp.y, z: 1.0 }, 0.35, null,
-                            function() { boardGroup.remove(m); if (--animsP === 0) finMagnet(mg); });
-                            tween(m.scale, { x: 0.3, y: 0.3, z: 0.3 }, 0.35); }); }); }); };
+            document.getElementById("btnMagnet").onclick = function() { 
+                if (busy || gameOver) return;
+                if (coins < 50) { toast(TT().not_enough); return; }
+                coins -= 50;
+                save.coins = coins;
+                persist();
+                updateHUD();
+                let tilesByVal = {}; 
+                for (let c = 0; c < COLS; c++)
+                    for (let r = 0; r < ROWS; r++) 
+                        if (grid[c][r]) { 
+                            let v = grid[c][r].value; 
+                            if (!tilesByVal[v]) tilesByVal[v] = [];
+                            tilesByVal[v].push({ c: c, r: r, cell: grid[c][r] }); 
+                        } 
+                let mg = Object.keys(tilesByVal).map(function(k) { return tilesByVal[k]; }).filter(function(g) { return g.length > 1; }); 
+                if (!mg.length) { toast(TT().no_pairs); return; }
+                busy = true;
+                playSound('magnet'); 
+                let animsP = 0;
+                mg.forEach(function(group) { 
+                    const trg = group[0];
+                    trg.newVal = trg.cell.value * Math.pow(2, group.length - 1);
+                    group.slice(1).forEach(function(t) { 
+                        const m = t.cell.mesh;
+                        grid[t.c][t.r] = null; 
+                        const tp = cellPos(trg.c, trg.r);
+                        animsP++;
+                        tween(m.position, { x: tp.x, y: tp.y, z: 1.0 }, 0.35, null,
+                        function() { boardGroup.remove(m); if (--animsP === 0) finMagnet(mg); });
+                        tween(m.scale, { x: 0.3, y: 0.3, z: 0.3 }, 0.35); 
+                    }); 
+                }); 
+            };
 
-            function finMagnet(mg) { playSound('merge');
-                mg.forEach(function(g) { const trg = g[0];
+            function finMagnet(mg) { 
+                playSound('merge');
+                mg.forEach(function(g) { 
+                    const trg = g[0];
                     boardGroup.remove(trg.cell.mesh);
                     grid[trg.c][trg.r] = null;
                     score += trg.newVal;
-                    save.score = score; const up = placeCube(trg.c, trg.r, trg.newVal);
+                    save.score = score; 
+                    const up = placeCube(trg.c, trg.r, trg.newVal);
                     up.mesh.scale.set(1.5, 1.5, 1.5);
-                    tween(up.mesh.scale, { x: 1, y: 1, z: 1 }, 0.25); });
-                setTimeout(function() { resolveMerges([]).then(function() { busy = false;
+                    tween(up.mesh.scale, { x: 1, y: 1, z: 1 }, 0.25); 
+                });
+                setTimeout(function() { 
+                    resolveMerges([]).then(function() { 
+                        busy = false;
                         updateHUD();
-                        persist(); }); }, 250); }
+                        persist(); 
+                    }); 
+                }, 250); 
+            }
 
-            function getShopProperties(tab) { const map = { cubes: { owned: 'ownedCubes', equip: 'equippedCube' }, boards: { owned: 'ownedBoards', equip: 'equippedBoard' }, effects: { owned: 'ownedEffects', equip: 'equippedEffect' }, sounds: { owned: 'ownedSounds', equip: 'equippedSound' }, music: { owned: 'ownedMusic', equip: 'equippedMusic' }, pet_hair: { owned: 'ownedHair', equip: 'equippedHair' }, pet_clothes: { owned: 'ownedClothes', equip: 'equippedClothes' }, pet_shoes: { owned: 'ownedShoes', equip: 'equippedShoes' }, pet_props: { owned: 'ownedProps', equip: 'equippedProps' } }; return map[tab] || { owned: '', equip: '' }; }
+            // ===== Shop =====
+            function getShopProperties(tab) { 
+                const map = { 
+                    cubes: { owned: 'ownedCubes', equip: 'equippedCube' }, 
+                    boards: { owned: 'ownedBoards', equip: 'equippedBoard' }, 
+                    effects: { owned: 'ownedEffects', equip: 'equippedEffect' }, 
+                    sounds: { owned: 'ownedSounds', equip: 'equippedSound' }, 
+                    music: { owned: 'ownedMusic', equip: 'equippedMusic' }, 
+                    pet_hair: { owned: 'ownedHair', equip: 'equippedHair' }, 
+                    pet_clothes: { owned: 'ownedClothes', equip: 'equippedClothes' }, 
+                    pet_shoes: { owned: 'ownedShoes', equip: 'equippedShoes' }, 
+                    pet_props: { owned: 'ownedProps', equip: 'equippedProps' } 
+                }; 
+                return map[tab] || { owned: '', equip: '' }; 
+            }
 
-            function renderShop() { const petSubTabs = document.getElementById('petSubTabs'); if (currentMainTab === 'pets') petSubTabs.classList.add('active'); else petSubTabs.classList.remove('active'); const activeTab = currentMainTab === 'pets' ? currentPetSubTab : currentMainTab; const container = document.getElementById('shopContainer');
-                container.innerHTML = ''; const arr = SHOP[activeTab] || []; const props = getShopProperties(activeTab);
-                arr.forEach(function(item) { const isOwned = save[props.owned] && save[props.owned].indexOf(item.id) !== -1;
-                    const isEquipped = save[props.equip] === item.id; const nm = itemName(item); const el = document.createElement('div');
+            function renderShop() { 
+                const petSubTabs = document.getElementById('petSubTabs'); 
+                if (currentMainTab === 'pets') petSubTabs.classList.add('active'); 
+                else petSubTabs.classList.remove('active'); 
+                const activeTab = currentMainTab === 'pets' ? currentPetSubTab : currentMainTab; 
+                const container = document.getElementById('shopContainer');
+                container.innerHTML = ''; 
+                const arr = SHOP[activeTab] || []; 
+                const props = getShopProperties(activeTab);
+                arr.forEach(function(item) { 
+                    const isOwned = save[props.owned] && save[props.owned].indexOf(item.id) !== -1;
+                    const isEquipped = save[props.equip] === item.id; 
+                    const nm = itemName(item); 
+                    const el = document.createElement('div');
                     el.className = 'shop-item ' + (isOwned ? 'owned' : '') + ' ' + (isEquipped ? 'equipped' : '');
-                    el.innerHTML = '<div style="font-size:32px; margin-bottom:3px;">' + item.icon + '</div><h3>' + nm + '</h3><div class="price">' + (isEquipped ? TT().selected : isOwned ? TT().select : item.price === 0 ? TT().free : item.price + ' 🪙') + '</div>'; if (!isOwned && item.price > 0) { const adBtn = document.createElement('button');
-                        adBtn.className = 'ad-btn';
-                        adBtn.textContent = TT().ad_free;
-                        adBtn.onclick = function(e) { e.stopPropagation();
-                            showAd(function() { save[props.owned].push(item.id);
-                                save[props.equip] = item.id;
-                                persist();
-                                updateHUD();
-                                renderShop();
-                                applyShopChanges(activeTab);
-                                toast(TT().bought(nm)); }); };
-                        el.appendChild(adBtn); }
-                    el.onclick = function() { if (isOwned) { save[props.equip] = item.id;
+                    el.innerHTML = '<div style="font-size:32px; margin-bottom:3px;">' + item.icon + '</div><h3>' + nm + '</h3><div class="price">' + (isEquipped ? TT().selected : isOwned ? TT().select : item.price === 0 ? TT().free : item.price + ' 💎') + '</div>'; 
+                    el.onclick = function() { 
+                        if (isOwned) { 
+                            save[props.equip] = item.id;
                             persist();
                             renderShop();
                             applyShopChanges(activeTab);
-                            toast(TT().picked(nm)); } else if (coins >= item.price) { coins -= item.price;
+                            toast(TT().picked(nm)); 
+                        } else if (coins >= item.price) { 
+                            coins -= item.price;
                             save.coins = coins;
                             save[props.owned].push(item.id);
                             save[props.equip] = item.id;
@@ -2418,41 +2491,75 @@
                             updateHUD();
                             renderShop();
                             applyShopChanges(activeTab);
-                            toast(TT().bought(nm)); } else { toast(TT().not_enough); } };
-                    container.appendChild(el); }); }
+                            toast(TT().bought(nm)); 
+                        } else { 
+                            toast(TT().not_enough); 
+                        } 
+                    };
+                    container.appendChild(el); 
+                }); 
+            }
 
-            function applyShopChanges(tabChanged) { if (tabChanged === 'boards') updateBoardColorsLive(); if (tabChanged === 'cubes') { for (let c = 0; c < COLS; c++)
-                        for (let r = 0; r < ROWS; r++) if (grid[c][r]) { const m = grid[c][r].mesh;
-                            m.material.map = numberTexture(grid[c][r].value);
-                            m.material.needsUpdate = true; } if (currentCube) { currentCube.material.map = numberTexture(currentCube.userData.value);
-                        currentCube.material.needsUpdate = true; }
-                    toast(TT().cube_changed); } if (tabChanged === 'pet_hair') buildHair(save.equippedHair); if (tabChanged === 'pet_clothes') equipClothes(save.equippedClothes); if (tabChanged === 'pet_shoes') { equipShoes(save.equippedShoes);
-                    toast(TT().shoes_changed); } if (tabChanged === 'pet_props') equipProp(save.equippedProps); if (tabChanged === 'effects') toast(TT().effect_changed); if (tabChanged === 'sounds') toast(TT().sound_changed); if (tabChanged === 'music') { toast(TT().music_changed); if (musicStarted) scheduleMusicLoop(); } }
+            function applyShopChanges(tabChanged) { 
+                if (tabChanged === 'boards') updateBoardColorsLive(); 
+                if (tabChanged === 'cubes') { 
+                    for (let c = 0; c < COLS; c++)
+                        for (let r = 0; r < ROWS; r++) 
+                            if (grid[c][r]) { 
+                                const m = grid[c][r].mesh;
+                                m.material.map = numberTexture(grid[c][r].value);
+                                m.material.needsUpdate = true; 
+                            } 
+                    if (currentCube) { 
+                        currentCube.material.map = numberTexture(currentCube.userData.value);
+                        currentCube.material.needsUpdate = true; 
+                    }
+                    toast(TT().cube_changed); 
+                } 
+                if (tabChanged === 'pet_hair') buildHair(save.equippedHair); 
+                if (tabChanged === 'pet_clothes') equipClothes(save.equippedClothes); 
+                if (tabChanged === 'pet_shoes') { equipShoes(save.equippedShoes);
+                    toast(TT().shoes_changed); } 
+                if (tabChanged === 'pet_props') equipProp(save.equippedProps); 
+                if (tabChanged === 'effects') toast(TT().effect_changed); 
+                if (tabChanged === 'sounds') toast(TT().sound_changed); 
+                if (tabChanged === 'music') { toast(TT().music_changed); if (musicStarted) scheduleMusicLoop(); } 
+            }
 
-            document.querySelectorAll('.shop-tab').forEach(function(btn) { btn.onclick = function(e) { document.querySelectorAll('.shop-tab').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.shop-tab').forEach(function(btn) { 
+                btn.onclick = function(e) { 
+                    document.querySelectorAll('.shop-tab').forEach(function(b) { b.classList.remove('active'); });
                     e.target.classList.add('active');
                     currentMainTab = e.target.dataset.maintab;
-                    renderShop(); }; });
-            document.querySelectorAll('.pet-subtab').forEach(function(btn) { btn.onclick = function(e) { document.querySelectorAll('.pet-subtab').forEach(function(b) { b.classList.remove('active'); });
+                    renderShop(); 
+                }; 
+            });
+            document.querySelectorAll('.pet-subtab').forEach(function(btn) { 
+                btn.onclick = function(e) { 
+                    document.querySelectorAll('.pet-subtab').forEach(function(b) { b.classList.remove('active'); });
                     e.target.classList.add('active');
                     currentPetSubTab = e.target.dataset.subtab;
-                    renderShop(); }; });
+                    renderShop(); 
+                }; 
+            });
 
-            function updateHUD() { document.getElementById("hudLevel").textContent = level + 1;
+            function updateHUD() { 
+                document.getElementById("hudLevel").textContent = level + 1;
                 document.getElementById("hudScore").textContent = score;
                 document.getElementById("hudCoins").textContent = coins;
                 document.getElementById("miniScore").textContent = score;
                 document.getElementById("btnHammer").classList.toggle("armed", hammerMode);
                 updateMissionProgress();
+                // Timer not updated here, it's separate
             }
 
-            function applyLang() { const t = TT();
+            function applyLang() { 
+                const t = TT();
                 document.documentElement.lang = lang;
                 const shopRoll = document.getElementById('shopRollup');
                 if (shopRoll) { shopRoll.childNodes[0].textContent = t.shop_tab + ' '; }
                 const helpRoll = document.getElementById('helpRollup');
                 if (helpRoll) helpRoll.textContent = t.help_tab;
-                document.querySelectorAll('#helpPanel .pbtn .cost').forEach(function(c) { if (c.id !== 'micCost') c.textContent = t.ad_cost; });
                 updateMissionProgress();
                 document.getElementById('lblLevel').textContent = t.level;
                 document.getElementById('lblScore').textContent = t.score;
@@ -2460,12 +2567,13 @@
                 document.getElementById('micCost').textContent = t.talk;
                 document.getElementById('shopTitle').textContent = t.customize;
                 document.getElementById('btnCloseShop').textContent = t.close;
-                document.getElementById('winTitle').textContent = t.win_title;
                 document.getElementById('loseTitle').textContent = t.lose_title;
-                document.getElementById('btnRevive').textContent = t.revive_btn;
                 const tabNames = { cubes: t.tab_cubes, boards: t.tab_boards, effects: t.tab_effects, sounds: t.tab_sounds, music: t.tab_music, pets: t.tab_pets };
-                document.querySelectorAll('.shop-tab').forEach(function(b) { b.textContent = tabNames[b.dataset.maintab] || b.textContent; }); const subNames = { pet_hair: t.sub_hair, pet_clothes: t.sub_clothes, pet_shoes: t.sub_shoes, pet_props: t.sub_props };
-                document.querySelectorAll('.pet-subtab').forEach(function(b) { b.textContent = subNames[b.dataset.subtab] || b.textContent; }); if (!document.getElementById('shopModal').classList.contains('hidden')) renderShop(); }
+                document.querySelectorAll('.shop-tab').forEach(function(b) { b.textContent = tabNames[b.dataset.maintab] || b.textContent; }); 
+                const subNames = { pet_hair: t.sub_hair, pet_clothes: t.sub_clothes, pet_shoes: t.sub_shoes, pet_props: t.sub_props };
+                document.querySelectorAll('.pet-subtab').forEach(function(b) { b.textContent = subNames[b.dataset.subtab] || b.textContent; }); 
+                if (!document.getElementById('shopModal').classList.contains('hidden')) renderShop(); 
+            }
 
             function updateSoundBtn() { document.getElementById('btnSound').textContent = muted ? '🔇' : '🔊'; }
 
@@ -2481,13 +2589,17 @@
 
             function onMoodChange(mood) { 
                 if (mood === 'angry') { showSpeech(TT().angry, 2200);
-                    angrySFX(); } if (mood === 'anxious') { showSpeech(TT().panic, 2200);
-                    panicSFX(); } if (mood === 'bored') showSpeech(TT().bored, 2200); }
+                    angrySFX(); } 
+                if (mood === 'anxious') { showSpeech(TT().panic, 2200);
+                    panicSFX(); } 
+                if (mood === 'bored') showSpeech(TT().bored, 2200); }
 
             let lastT = 0, stepAccum = 0;
 
-            function loop(t) { if (_sdkPaused) { requestAnimationFrame(loop); lastT = t; return; } const dt = Math.min(0.05, (t - lastT) / 1000);
-                lastT = t; if (!lastActionTime) lastActionTime = performance.now();
+            function loop(t) { 
+                const dt = Math.min(0.05, (t - lastT) / 1000);
+                lastT = t; 
+                if (!lastActionTime) lastActionTime = performance.now();
                 stepAnims(dt);
                 updateParticles(dt);
                 updateClouds(dt); 
@@ -2541,84 +2653,306 @@
                     u.pivot.rotation.x = droop + shake * 0.5;
                 });
                 
-                if (girl) { const core = girlCore; if (winTime > 0) { winTime -= dt; const hop = Math.abs(Math.sin(t * 0.01));
-                    core.position.y = hop * 1.3;
-                    core.scale.y = 1 + Math.sin(t * 0.01) * 0.08;
-                    core.scale.x = 1 - Math.sin(t * 0.01) * 0.05;
-                    girl.rotation.y = -0.2 + Math.sin(t * 0.004) * 0.5;
-                    sockets.handL.rotation.z = 2.6 + Math.sin(t * 0.02) * 0.3;
-                    sockets.handR.rotation.z = -2.6 - Math.sin(t * 0.02) * 0.3;
-                    (hairGroup.userData.tails || []).forEach(function(tail, i) { tail.rotation.z = (i === 0 ? -0.3 : 0.3) + Math.sin(t * 0.012 + i) * 0.35; });
-                    mouthMesh.scale.set(0.95, 0.8, 0.35);
-                    eyeL.scale.set(1, 0.35, 1);
-                    eyeR.scale.set(1, 0.35, 1); if (winTime <= 0) { sockets.handL.rotation.z = 0.35;
-                        sockets.handR.rotation.z = -0.35;
-                        core.position.y = 0; } } else if (reactionTime > 0) { reactionTime -= dt;
-                    core.position.y = 0.15 * Math.abs(Math.sin(t * 0.015));
-                    girl.rotation.y = -0.2 + Math.sin(t * 0.01) * 0.12;
-                    sockets.handL.rotation.z = 0.35 + Math.sin(t * 0.02) * 0.6;
-                    sockets.handR.rotation.z = -0.35 - Math.sin(t * 0.02) * 0.6;
-                    mouthMesh.scale.set(0.75, 0.65, 0.35);
-                    eyeL.scale.set(1.1, 1.1, 1.1);
-                    eyeR.scale.set(1.1, 1.1, 1.1);
-                    browL.visible = false;
-                    browR.visible = false; } else { const now = performance.now();
-                    girlMood = computeMood(now); if (girlMood !== prevMood) { onMoodChange(girlMood);
-                        prevMood = girlMood; } if (girlMood === 'angry' || girlMood === 'anxious') { if (petState === 'walk') { petState = 'stand';
-                            petStateTimer = 2; } } else { petStateTimer -= dt; if (petStateTimer <= 0) pickNextState(); } if (petState === 'walk') { const dir = Math.sign(wanderTargetX - girlNdcX); if (dir !== 0) faceDir = dir;
-                        girlNdcX += dir * 0.11 * dt;
-                        stepAccum += dt; if (stepAccum > 0.36) { stepAccum = 0;
-                            stepSFX(); } if (Math.abs(wanderTargetX - girlNdcX) < 0.02) { petState = 'stand';
-                            petStateTimer = 1.5 + Math.random() * 2.5; } }
-                    updateGirlScreenPosition();
-                    core.position.x = 0;
-                    girl.rotation.x = 0.12; if (petState === 'hop') { girl.rotation.y += (-0.2 - girl.rotation.y) * 0.1;
-                        core.position.y = Math.abs(Math.sin(t * 0.012)) * 0.5;
-                        sockets.handL.rotation.z = 0.35 + Math.abs(Math.sin(t * 0.012)) * 0.9;
-                        sockets.handR.rotation.z = -0.35 - Math.abs(Math.sin(t * 0.012)) * 0.9;
-                        (hairGroup.userData.tails || []).forEach(function(tail, i) { tail.rotation.z = (i === 0 ? -0.3 : 0.3) + Math.sin(t * 0.012 + i) * 0.3; });
-                        eyeL.scale.set(1, 1, 1);
-                        eyeR.scale.set(1, 1, 1); if (!isTalking) mouthMesh.scale.set(0.8, 0.5, 0.35);
+                if (girl) { 
+                    const core = girlCore; 
+                    if (winTime > 0) { 
+                        winTime -= dt; 
+                        const hop = Math.abs(Math.sin(t * 0.01));
+                        core.position.y = hop * 1.3;
+                        core.scale.y = 1 + Math.sin(t * 0.01) * 0.08;
+                        core.scale.x = 1 - Math.sin(t * 0.01) * 0.05;
+                        girl.rotation.y = -0.2 + Math.sin(t * 0.004) * 0.5;
+                        sockets.handL.rotation.z = 2.6 + Math.sin(t * 0.02) * 0.3;
+                        sockets.handR.rotation.z = -2.6 - Math.sin(t * 0.02) * 0.3;
+                        (hairGroup.userData.tails || []).forEach(function(tail, i) { tail.rotation.z = (i === 0 ? -0.3 : 0.3) + Math.sin(t * 0.012 + i) * 0.35; });
+                        mouthMesh.scale.set(0.95, 0.8, 0.35);
+                        eyeL.scale.set(1, 0.35, 1);
+                        eyeR.scale.set(1, 0.35, 1); 
+                        if (winTime <= 0) { 
+                            sockets.handL.rotation.z = 0.35;
+                            sockets.handR.rotation.z = -0.35;
+                            core.position.y = 0; 
+                        } 
+                    } else if (reactionTime > 0) { 
+                        reactionTime -= dt;
+                        core.position.y = 0.15 * Math.abs(Math.sin(t * 0.015));
+                        girl.rotation.y = -0.2 + Math.sin(t * 0.01) * 0.12;
+                        sockets.handL.rotation.z = 0.35 + Math.sin(t * 0.02) * 0.6;
+                        sockets.handR.rotation.z = -0.35 - Math.sin(t * 0.02) * 0.6;
+                        mouthMesh.scale.set(0.75, 0.65, 0.35);
+                        eyeL.scale.set(1.1, 1.1, 1.1);
+                        eyeR.scale.set(1.1, 1.1, 1.1);
                         browL.visible = false;
-                        browR.visible = false; } else if (petState === 'walk') { girl.rotation.y += ((faceDir > 0 ? 0.65 : -0.9) - girl.rotation.y) * 0.08;
-                        core.position.y = Math.abs(Math.sin(t * 0.012)) * 0.09;
-                        sockets.footL.rotation.x = Math.sin(t * 0.012) * 0.6;
-                        sockets.footR.rotation.x = -Math.sin(t * 0.012) * 0.6;
-                        sockets.handL.rotation.x = -Math.sin(t * 0.012) * 0.5;
-                        sockets.handR.rotation.x = Math.sin(t * 0.012) * 0.5;
-                        (hairGroup.userData.tails || []).forEach(function(tail, i) { tail.rotation.x = Math.sin(t * 0.012 + i * 0.8) * 0.18; });
-                        eyeL.scale.set(1, 1, 1);
-                        eyeR.scale.set(1, 1, 1); if (!isTalking) mouthMesh.scale.set(1, 0.3, 0.3);
-                        browL.visible = false;
-                        browR.visible = false; } else { girl.rotation.y += (-0.2 - girl.rotation.y) * 0.1;
-                        core.scale.y = 1 + Math.sin(t * 0.004) * 0.02;
-                        core.position.y = Math.sin(t * 0.002) * 0.06;
-                        sockets.footL.rotation.x += (0 - sockets.footL.rotation.x) * 0.1;
-                        sockets.footR.rotation.x += (0 - sockets.footR.rotation.x) * 0.1;
-                        sockets.handL.rotation.x = 0;
-                        sockets.handR.rotation.x = 0;
-                        sockets.handL.rotation.z = 0.35 + Math.sin(t * 0.003) * 0.08;
-                        sockets.handR.rotation.z = -0.35 - Math.cos(t * 0.003) * 0.08;
-                        (hairGroup.userData.tails || []).forEach(function(tail, i) { tail.rotation.x = Math.sin(t * 0.0025 + i * 1.5) * 0.08; }); const showBrows = girlMood === 'angry';
-                        browL.visible = showBrows;
-                        browR.visible = showBrows; if (showBrows) { browL.rotation.z = -0.4;
-                            browR.rotation.z = 0.4; } if (girlMood === 'angry') { eyeL.scale.set(1, 0.7, 1);
-                            eyeR.scale.set(1, 0.7, 1); if (!isTalking) mouthMesh.scale.set(0.8, 0.12, 0.3); } else if (girlMood === 'anxious') { eyeL.scale.set(1.3, 1.3, 1.3);
-                            eyeR.scale.set(1.3, 1.3, 1.3); if (!isTalking) mouthMesh.scale.set(0.5, 0.55, 0.35);
-                            girl.position.x += (Math.random() - 0.5) * 0.05;
-                            girl.position.y += (Math.random() - 0.5) * 0.05; } else if (girlMood === 'bored') { eyeL.scale.set(1, 0.35, 1);
-                            eyeR.scale.set(1, 0.35, 1);
-                            girl.rotation.z = Math.sin(t * 0.0008) * 0.1; const yawn = Math.max(0, Math.sin(t * 0.0012)); if (!isTalking) mouthMesh.scale.set(0.55 + yawn * 0.2, 0.2 + yawn * 0.55, 0.35); } else { girl.rotation.z += (0 - girl.rotation.z) * 0.1;
+                        browR.visible = false; 
+                    } else { 
+                        const now = performance.now();
+                        girlMood = computeMood(now); 
+                        if (girlMood !== prevMood) { onMoodChange(girlMood);
+                            prevMood = girlMood; } 
+                        if (girlMood === 'angry' || girlMood === 'anxious') { 
+                            if (petState === 'walk') { petState = 'stand';
+                                petStateTimer = 2; } 
+                        } else { 
+                            petStateTimer -= dt; 
+                            if (petStateTimer <= 0) pickNextState(); 
+                        } 
+                        if (petState === 'walk') { 
+                            const dir = Math.sign(wanderTargetX - girlNdcX); 
+                            if (dir !== 0) faceDir = dir;
+                            girlNdcX += dir * 0.11 * dt;
+                            stepAccum += dt; 
+                            if (stepAccum > 0.36) { stepAccum = 0;
+                                stepSFX(); } 
+                            if (Math.abs(wanderTargetX - girlNdcX) < 0.02) { petState = 'stand';
+                                petStateTimer = 1.5 + Math.random() * 2.5; } }
+                        updateGirlScreenPosition();
+                        core.position.x = 0;
+                        girl.rotation.x = 0.12; 
+                        if (petState === 'hop') { 
+                            girl.rotation.y += (-0.2 - girl.rotation.y) * 0.1;
+                            core.position.y = Math.abs(Math.sin(t * 0.012)) * 0.5;
+                            sockets.handL.rotation.z = 0.35 + Math.abs(Math.sin(t * 0.012)) * 0.9;
+                            sockets.handR.rotation.z = -0.35 - Math.abs(Math.sin(t * 0.012)) * 0.9;
+                            (hairGroup.userData.tails || []).forEach(function(tail, i) { tail.rotation.z = (i === 0 ? -0.3 : 0.3) + Math.sin(t * 0.012 + i) * 0.3; });
                             eyeL.scale.set(1, 1, 1);
-                            eyeR.scale.set(1, 1, 1); const blink = Math.sin(t * 0.0035); if (blink > 0.985) { eyeL.scale.y = 0.1;
-                                eyeR.scale.y = 0.1; } if (!isTalking) mouthMesh.scale.set(1, 0.3, 0.3); } } } if (isTalking && mouthMesh) { mouthMesh.scale.y = 0.25 + Math.abs(Math.sin(t * 0.025)) * 0.55;
-                    mouthMesh.scale.x = 0.7 + Math.abs(Math.cos(t * 0.02)) * 0.2; }
-                    girlCore.traverse(function(child) { if (child.userData && child.userData.onUpdate) child.userData.onUpdate(t); }); } if (currentCube && !busy) currentCube.rotation.y = Math.sin(t * 0.002) * 0.12; if (renderer) renderer.render(scene, camera);
-                requestAnimationFrame(loop); }
+                            eyeR.scale.set(1, 1, 1); 
+                            if (!isTalking) mouthMesh.scale.set(0.8, 0.5, 0.35);
+                            browL.visible = false;
+                            browR.visible = false; 
+                        } else if (petState === 'walk') { 
+                            girl.rotation.y += ((faceDir > 0 ? 0.65 : -0.9) - girl.rotation.y) * 0.08;
+                            core.position.y = Math.abs(Math.sin(t * 0.012)) * 0.09;
+                            sockets.footL.rotation.x = Math.sin(t * 0.012) * 0.6;
+                            sockets.footR.rotation.x = -Math.sin(t * 0.012) * 0.6;
+                            sockets.handL.rotation.x = -Math.sin(t * 0.012) * 0.5;
+                            sockets.handR.rotation.x = Math.sin(t * 0.012) * 0.5;
+                            (hairGroup.userData.tails || []).forEach(function(tail, i) { tail.rotation.x = Math.sin(t * 0.012 + i * 0.8) * 0.18; });
+                            eyeL.scale.set(1, 1, 1);
+                            eyeR.scale.set(1, 1, 1); 
+                            if (!isTalking) mouthMesh.scale.set(1, 0.3, 0.3);
+                            browL.visible = false;
+                            browR.visible = false; 
+                        } else { 
+                            girl.rotation.y += (-0.2 - girl.rotation.y) * 0.1;
+                            core.scale.y = 1 + Math.sin(t * 0.004) * 0.02;
+                            core.position.y = Math.sin(t * 0.002) * 0.06;
+                            sockets.footL.rotation.x += (0 - sockets.footL.rotation.x) * 0.1;
+                            sockets.footR.rotation.x += (0 - sockets.footR.rotation.x) * 0.1;
+                            sockets.handL.rotation.x = 0;
+                            sockets.handR.rotation.x = 0;
+                            sockets.handL.rotation.z = 0.35 + Math.sin(t * 0.003) * 0.08;
+                            sockets.handR.rotation.z = -0.35 - Math.cos(t * 0.003) * 0.08;
+                            (hairGroup.userData.tails || []).forEach(function(tail, i) { tail.rotation.x = Math.sin(t * 0.0025 + i * 1.5) * 0.08; }); 
+                            const showBrows = girlMood === 'angry';
+                            browL.visible = showBrows;
+                            browR.visible = showBrows; 
+                            if (showBrows) { browL.rotation.z = -0.4;
+                                browR.rotation.z = 0.4; } 
+                            if (girlMood === 'angry') { 
+                                eyeL.scale.set(1, 0.7, 1);
+                                eyeR.scale.set(1, 0.7, 1); 
+                                if (!isTalking) mouthMesh.scale.set(0.8, 0.12, 0.3); 
+                            } else if (girlMood === 'anxious') { 
+                                eyeL.scale.set(1.3, 1.3, 1.3);
+                                eyeR.scale.set(1.3, 1.3, 1.3); 
+                                if (!isTalking) mouthMesh.scale.set(0.5, 0.55, 0.35);
+                                girl.position.x += (Math.random() - 0.5) * 0.05;
+                                girl.position.y += (Math.random() - 0.5) * 0.05; 
+                            } else if (girlMood === 'bored') { 
+                                eyeL.scale.set(1, 0.35, 1);
+                                eyeR.scale.set(1, 0.35, 1);
+                                girl.rotation.z = Math.sin(t * 0.0008) * 0.1; 
+                                const yawn = Math.max(0, Math.sin(t * 0.0012)); 
+                                if (!isTalking) mouthMesh.scale.set(0.55 + yawn * 0.2, 0.2 + yawn * 0.55, 0.35); 
+                            } else { 
+                                girl.rotation.z += (0 - girl.rotation.z) * 0.1;
+                                eyeL.scale.set(1, 1, 1);
+                                eyeR.scale.set(1, 1, 1); 
+                                const blink = Math.sin(t * 0.0035); 
+                                if (blink > 0.985) { eyeL.scale.y = 0.1;
+                                    eyeR.scale.y = 0.1; } 
+                                if (!isTalking) mouthMesh.scale.set(1, 0.3, 0.3); 
+                            } 
+                        } 
+                    } 
+                    if (isTalking && mouthMesh) { 
+                        mouthMesh.scale.y = 0.25 + Math.abs(Math.sin(t * 0.025)) * 0.55;
+                        mouthMesh.scale.x = 0.7 + Math.abs(Math.cos(t * 0.02)) * 0.2; 
+                    }
+                    girlCore.traverse(function(child) { if (child.userData && child.userData.onUpdate) child.userData.onUpdate(t); }); 
+                } 
+                if (currentCube && !busy) currentCube.rotation.y = Math.sin(t * 0.002) * 0.12; 
+                if (renderer) renderer.render(scene, camera);
+                requestAnimationFrame(loop); 
+            }
 
+            // ===== Share function =====
+            function shareScore(scoreVal, mode) {
+                const text = "I scored " + scoreVal + " in Drop 4096! Can you beat my score? Play now!";
+                const url = "https://franklymadear.github.io/drop4096-reddit/";
+                const shareData = {
+                    title: "Drop 4096",
+                    text: text,
+                    url: url
+                };
+                if (navigator.share) {
+                    navigator.share(shareData).catch(function(err) {
+                        console.warn('Share failed', err);
+                        // fallback
+                        copyToClipboard(text + " " + url);
+                    });
+                } else {
+                    copyToClipboard(text + " " + url);
+                }
+            }
+
+            function copyToClipboard(text) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        toast("📋 Score copied to clipboard!");
+                    }).catch(function() {
+                        fallbackCopy(text);
+                    });
+                } else {
+                    fallbackCopy(text);
+                }
+            }
+
+            function fallbackCopy(text) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    toast("📋 Score copied!");
+                } catch (e) {
+                    toast("Could not copy. Here is your score: " + text);
+                }
+                document.body.removeChild(ta);
+            }
+
+            // ===== Time Attack Timer =====
+            function updateTimerDisplay() {
+                const mins = Math.floor(timeRemaining / 60);
+                const secs = Math.floor(timeRemaining % 60);
+                const timerEl = document.getElementById('timer');
+                if (timerEl) {
+                    timerEl.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+                }
+            }
+
+            function startTimer() {
+                if (timerInterval) clearInterval(timerInterval);
+                timeRemaining = 180;
+                updateTimerDisplay();
+                document.getElementById('timer').classList.remove('hidden');
+                timerInterval = setInterval(function() {
+                    timeRemaining -= 1;
+                    updateTimerDisplay();
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        timeUp();
+                    }
+                }, 1000);
+            }
+
+            function timeUp() {
+                gameOver = true;
+                busy = true;
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                document.getElementById('timer').classList.add('hidden');
+                // Update best
+                if (score > save.bestTimeAttack) save.bestTimeAttack = score;
+                persist();
+                // Show Time Up Modal
+                document.getElementById("timeUpText").innerHTML = TT().lose_text(score) + '<br>Best: ' + save.bestTimeAttack;
+                document.getElementById("timeUpModal").classList.remove("hidden");
+            }
+
+            // ===== Main Menu & Start Game =====
+            function startGame(mode) {
+                // Hide menu
+                document.getElementById('mainMenu').classList.add('hidden');
+                // Reset game state
+                gameMode = mode;
+                gameOver = false;
+                busy = false;
+                hammerMode = false;
+                winTime = 0;
+                reactionTime = 0;
+                shownAchievements = {};
+                // Reset level, score, etc.
+                level = save.level || 0;
+                score = 0;
+                save.score = 0;
+                coins = save.coins || 100;
+                persist();
+                // Reset board
+                // Clear existing board
+                for (let c = 0; c < COLS; c++)
+                    for (let r = 0; r < ROWS; r++) {
+                        if (grid[c] && grid[c][r]) boardGroup.remove(grid[c][r].mesh);
+                    }
+                grid = [];
+                for (let c = 0; c < COLS; c++) { grid.push(new Array(ROWS).fill(null)); }
+                updateHUD();
+                // Spawn initial cubes
+                for (let i = 0; i < levelPreset(level); i++) { 
+                    const c = Math.floor(Math.random() * COLS); 
+                    const r = colHeight(c); 
+                    if (r < 3) placeCube(c, r, [2, 4, 8, 16][Math.floor(Math.random() * 4)], true); 
+                }
+                spawnCurrent();
+                setAim(aimCol);
+                updateMissionProgress();
+                lastActionTime = performance.now();
+                // Timer
+                if (mode === 'timeattack') {
+                    startTimer();
+                } else {
+                    document.getElementById('timer').classList.add('hidden');
+                }
+                // Start music if not already
+                if (!musicStarted) startMusic();
+                announceMission(400);
+                // Hide any modals
+                document.getElementById('loseModal').classList.add('hidden');
+                document.getElementById('timeUpModal').classList.add('hidden');
+                document.getElementById('winModal').classList.add('hidden');
+            }
+
+            document.getElementById('btnClassic').onclick = function() { startGame('classic'); };
+            document.getElementById('btnTimeAttack').onclick = function() { startGame('timeattack'); };
+
+            // Play Again buttons
+            document.getElementById('btnPlayAgainLose').onclick = function() {
+                document.getElementById('loseModal').classList.add('hidden');
+                startGame(gameMode);
+            };
+            document.getElementById('btnPlayAgainTimeUp').onclick = function() {
+                document.getElementById('timeUpModal').classList.add('hidden');
+                startGame('timeattack');
+            };
+
+            // Share buttons
+            document.getElementById('btnShareLose').onclick = function() {
+                shareScore(score, gameMode);
+            };
+            document.getElementById('btnShareTimeUp').onclick = function() {
+                shareScore(score, 'timeattack');
+            };
+
+            // ===== Initialization =====
             (function() {
-                try { const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11'];
-                    keys.forEach(function(k) { localStorage.removeItem(k); }); } catch (e) {}
+                try { 
+                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12'];
+                    keys.forEach(function(k) { localStorage.removeItem(k); }); 
+                } catch (e) {}
 
                 const shopRollup = document.getElementById('shopRollup');
                 const shopPanel = document.getElementById('shopPanel');
@@ -2703,26 +3037,26 @@
                     firstInteraction = true; if (audioCtx.state === 'suspended') audioCtx.resume(); try { const u = new SpeechSynthesisUtterance(' ');
                         u.volume = 0;
                         speechSynthesis.speak(u); } catch (e) {}
-                    startMusic();
-                    announceMission(400); }); if (!window.PointerEvent) { document.addEventListener('touchstart', function() { if (firstInteraction) return;
+                    startMusic(); }); 
+                if (!window.PointerEvent) { 
+                    document.addEventListener('touchstart', function() { if (firstInteraction) return;
                         firstInteraction = true; if (audioCtx.state === 'suspended') audioCtx.resume();
-                        startMusic();
-                        announceMission(400); }, { passive: true }); }
+                        startMusic(); }, { passive: true }); 
+                }
 
                 loadSave();
                 coins = save.coins || 100;
                 level = save.level || 0;
-                best = save.best || 0;
                 score = save.score || 0;
                 lang = save.lang || 'en';
                 muted = !!save.muted;
+                bestClassic = save.bestClassic || 0;
+                bestTimeAttack = save.bestTimeAttack || 0;
 
-                // ΠΡΟΣΘΗΚΗ: Καθυστέρηση (setTimeout) για να προλάβει το κινητό να υπολογίσει τις διαστάσεις οθόνης
                 setTimeout(function() {
                     try {
                         initThree(); 
                         if (!renderer) {
-                            // Αν δεν δημιουργηθεί το renderer, δείχνουμε μήνυμα στην οθόνη
                             document.body.innerHTML = '<div style="text-align:center;padding:20px;font-family:sans-serif;margin-top:100px;">WebGL error: Renderer failed to initialize.</div>';
                             return;
                         }
@@ -2738,88 +3072,25 @@
 
                         const cvs = document.getElementById("game");
                         cvs.addEventListener("pointermove", function(e) { 
-                            if (busy || !currentCube) return; 
+                            if (busy || !currentCube || gameOver) return; 
                             const cx = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX; 
                             const colWidth = window.innerWidth / COLS;
                             let col = Math.floor(cx / colWidth);
                             col = Math.max(0, Math.min(COLS - 1, col));
                             setAim(col); 
                         });
-                        cvs.addEventListener("pointerdown", onTap); if (!window.PointerEvent) { cvs.addEventListener("touchstart", onTap, { passive: true }); }
+                        cvs.addEventListener("pointerdown", onTap); 
+                        if (!window.PointerEvent) { cvs.addEventListener("touchstart", onTap, { passive: true }); }
 
-                        document.getElementById("btnRevive").onclick = function() {
-                            if (busy) return;
-                            showAd(function() { doRevive(); });
-                        };
-
-                        setTimeout(function() {
-                            document.getElementById('tutorialModal').classList.remove('hidden');
-                        }, 500); 
-                        
-                        document.getElementById('btnStartTutorial').onclick = function() {
-                            document.getElementById('tutorialModal').classList.add('hidden');
-                            if (!musicStarted) startMusic();
-                        };
+                        // Show main menu
+                        document.getElementById('mainMenu').classList.remove('hidden');
                     } catch(e) {
                         document.body.innerHTML = '<div style="text-align:center;padding:20px;font-family:sans-serif;margin-top:100px;">⚠️ ERROR: ' + e.message + ' <br><br>Try tapping the screen first or reload.</div>';
                         console.error(e);
                     }
-                }, 200); // 200ms καθυστέρηση
+                }, 200); 
             })();
 
-            function doRevive() {
-                document.getElementById("loseModal").classList.add("hidden");
-                busy = true;
-                
-                for(let c = 0; c < COLS; c++) {
-                    for(let r = 0; r < 2; r++) {
-                        if(grid[c] && grid[c][r]) {
-                            let m = grid[c][r].mesh;
-                            if(m) {
-                                boardGroup.remove(m);
-                                spawnBurst(m.position.x, m.position.y, m.position.z, 'smoke', 8);
-                            }
-                            grid[c][r] = null;
-                        }
-                    }
-                }
-                
-                for(let c = 0; c < COLS; c++) {
-                    let write = 0;
-                    for(let r = 0; r < ROWS; r++) {
-                        if(grid[c][r]) {
-                            if(r !== write) {
-                                grid[c][write] = grid[c][r];
-                                grid[c][r] = null;
-                                if(grid[c][write] && grid[c][write].mesh) {
-                                    tween(grid[c][write].mesh.position, { y: cellPos(c, write).y }, 0.15);
-                                }
-                            }
-                            write++;
-                        }
-                    }
-                }
-                
-                setTimeout(function() {
-                    busy = false;
-                    winShown = false;
-                    spawnCurrent();
-                    setAim(aimCol);
-                    updateHUD();
-                }, 400);
-            }
-
-            function handlePause() {
-                _sdkPaused = true;
-                try { if (speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
-                try { if (audioCtx && audioCtx.state === 'running') audioCtx.suspend(); } catch (e) {}
-            }
-
-            function handleResume() {
-                _sdkPaused = false;
-                lastT = performance.now();
-                try { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {}
-            }
         })();
     </script>
 </body>
