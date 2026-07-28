@@ -392,9 +392,6 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.08); }
         }
-        .spacer {
-            flex: 1;
-        }
 
         #toast {
             position: fixed;
@@ -1010,13 +1007,13 @@
 
             function loadSave() {
                 try {
-                    const r = localStorage.getItem("drop2048-frankly-v15");
+                    const r = localStorage.getItem("drop2048-frankly-v16");
                     if (r) save = Object.assign({}, DEFAULT_SAVE, JSON.parse(r));
                 } catch (e) { console.warn('Load save error', e); }
             }
 
             function persist() {
-                try { localStorage.setItem("drop2048-frankly-v15", JSON.stringify(save)); } catch (e) {}
+                try { localStorage.setItem("drop2048-frankly-v16", JSON.stringify(save)); } catch (e) {}
             }
 
             let coins = 0, level = 0, score = 0, muted = false;
@@ -2082,8 +2079,10 @@
                     a.t += dt / a.dur; const k = a.t >= 1 ? 1 : a.ease(a.t); for (const p in a.to) a.obj[p] = a.from[p] + (a.to[p] - a.from[p]) * k; if (a.t >= 1) { anims.splice(i, 1); if (a.done) a.done(); } } }
 
             // ============================================================
-            //   ΠΥΡΗΝΑΣ ΠΑΙΧΝΙΔΙΟΥ (ΑΠΟ ΤΟ ΑΡΧΙΚΟ ΣΟΥ ΑΡΧΕΙΟ)
+            //   Ο ΠΥΡΗΝΑΣ ΤΟΥ ΠΑΙΧΝΙΔΙΟΥ (ΑΠΟ ΤΟ ΑΡΧΙΚΟ ΣΟΥ ΑΡΧΕΙΟ)
+            //   ΔΙΑΤΗΡΗΜΕΝΟΣ ΑΥΤΟΥΣΙΟΣ.
             // ============================================================
+
             function newBoard() { 
                 for (let c = 0; c < COLS; c++)
                     for (let r = 0; r < ROWS; r++) { if (grid[c] && grid[c][r]) boardGroup.remove(grid[c][r].mesh); }
@@ -2139,7 +2138,7 @@
                 }
                 updateDropIndicator(aimCol);
             }
-            
+
             function updateDropIndicator(col) {
                 const elem = document.getElementById('dropIndicator');
                 if(!elem) return;
@@ -2290,7 +2289,7 @@
             }
 
             // ============================================================
-            //   WIN / LEVEL UP / GAME OVER
+            //   WIN / LEVEL UP / GAME OVER (ΜΕ ΤΙΣ ΔΙΚΕΣ ΜΟΥ ΠΡΟΣΘΗΚΕΣ)
             // ============================================================
             function checkWin() { 
                 const t = levelTarget(level); 
@@ -2339,6 +2338,69 @@
                 document.getElementById("loseText").innerHTML = TT().lose_text(score) + 
                     (gameMode === 'classic' ? '<br>Best: ' + save.bestClassic : '<br>Best: ' + save.bestTimeAttack);
                 document.getElementById("loseModal").classList.remove("hidden"); 
+            }
+
+            // ============================================================
+            //   ON TAP (ΑΥΤΟΥΣΙΟ ΑΠΟ ΤΟ ΑΡΧΙΚΟ ΣΟΥ ΑΡΧΕΙΟ)
+            // ============================================================
+            function onTap(e) { 
+                if (document.querySelector(".overlay:not(.hidden)")) return;
+                if (gameOver) return;
+                lastActionTime = performance.now(); 
+                const cx = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+                const cy = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY; 
+                const x = cx / innerWidth * 2 - 1;
+                const y = -(cy / innerHeight * 2 - 1);
+                
+                pointer.set(x, y);
+                raycaster.setFromCamera(pointer, camera); 
+
+                if (girl) { 
+                    const hits = raycaster.intersectObject(girl, true); 
+                    if (hits.length > 0 && winTime <= 0) { 
+                        giggleSFX();
+                        reactionTime = 1.0; 
+                        const greetings = TT().greetings; 
+                        const pick = greetings[Math.floor(Math.random() * greetings.length)];
+                        showSpeech(pick, 1800);
+                        speak(pick.replace(/[^Ͱ-Ͽἀ-῿a-zA-Z' ;!?]/g, '').trim()); 
+                        return; 
+                    } 
+                } 
+                
+                const boardNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(boardGroup.quaternion);
+                const plane = new THREE.Plane();
+                plane.setFromNormalAndCoplanarPoint(boardNormal, boardGroup.position);
+                const hit = new THREE.Vector3();
+                raycaster.ray.intersectPlane(plane, hit);
+                
+                boardGroup.worldToLocal(hit); 
+                
+                const c = Math.max(0, Math.min(COLS - 1, Math.round((hit.x + BOARD_W / 2) / (CELL + GAP) - 0.5)));
+                const r = Math.round((BOARD_H / 2 - hit.y) / (CELL + GAP) - 0.5); 
+
+                if (hammerMode) { 
+                    if (r >= 0 && r < ROWS && grid[c][r]) { 
+                        hammerMode = false; 
+                        const m = grid[c][r].mesh;
+                        grid[c][r] = null;
+                        tween(m.scale, { x: .01, y: .01, z: .01 }, 0.18, null, function() { boardGroup.remove(m); });
+                        busy = true;
+                        setTimeout(function() { resolveMerges([]).then(function() { busy = false;
+                                updateHUD();
+                                persist(); }); }, 180);
+                        playSound('hammer'); 
+                    } else { 
+                        hammerMode = false;
+                        updateHUD(); 
+                    } 
+                    return;
+                }
+                
+                if(r < ROWS && r >= 0) {
+                    setAim(c, true);
+                    launch(); 
+                }
             }
 
             // ===== SHARE =====
@@ -2886,7 +2948,7 @@
             // ============================================================
             (function() {
                 try { 
-                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12', 'drop2048-frankly-v13', 'drop2048-frankly-v14'];
+                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12', 'drop2048-frankly-v13', 'drop2048-frankly-v14', 'drop2048-frankly-v15'];
                     keys.forEach(function(k) { localStorage.removeItem(k); }); 
                 } catch (e) {}
 
@@ -3024,6 +3086,7 @@
                             col = Math.max(0, Math.min(COLS - 1, col));
                             setAim(col); 
                         });
+                        // ΕΔΩ ΓΙΝΕΤΑΙ ΤΟ ATTACH ΤΗΣ onTap
                         cvs.addEventListener("pointerdown", onTap); 
                         if (!window.PointerEvent) { cvs.addEventListener("touchstart", onTap, { passive: true }); }
 
