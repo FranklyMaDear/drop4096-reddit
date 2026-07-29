@@ -2872,6 +2872,12 @@
                     }
                     isGameReady = true;
                     newBoard();
+                    
+                    // === ΠΡΟΣΘΗΚΗ: Ξεκινάμε το animation loop ===
+                    requestAnimationFrame(loop);
+                    lastT = performance.now();
+                    // ==============================================
+
                     updateHUD();
                     applyLang();
                     updateSoundBtn();
