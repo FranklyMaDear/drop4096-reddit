@@ -812,8 +812,7 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         (function() {
             'use strict';
@@ -2090,10 +2089,7 @@
                     a.t += dt / a.dur; const k = a.t >= 1 ? 1 : a.ease(a.t); for (const p in a.to) a.obj[p] = a.from[p] + (a.to[p] - a.from[p]) * k; if (a.t >= 1) { anims.splice(i, 1); if (a.done) a.done(); } } }
 
             // ============================================================
-            //   Ο ΠΥΡΗΝΑΣ ΤΟΥ ΠΑΙΧΝΙΔΙΟΥ (ΑΠΟ ΤΟ ΑΡΧΙΚΟ ΣΟΥ ΑΡΧΕΙΟ)
-            //   ΔΙΑΤΗΡΗΜΕΝΟΣ ΑΥΤΟΥΣΙΟΣ. 
-            //   ΔΙΟΡΘΩΣΗ 1: Το game over γίνεται ΜΟΝΟ όταν γεμίσει ΟΛΟ το ταμπλό (isBoardFull).
-            //   ΔΙΟΡΘΩΣΗ 2: Απαγόρευση ρίψης σε γεμάτη στήλη (κλείδωμα στο launch).
+            //   Ο ΠΥΡΗΝΑΣ ΤΟΥ ΠΑΙΧΝΙΔΙΟΥ
             // ============================================================
 
             function newBoard() { 
@@ -2129,12 +2125,10 @@
             }
 
             function spawnCurrent() { 
-                // --- ΔΙΟΡΘΩΣΗ: Καθαρισμός του παγωμένου κύβου πριν δημιουργηθεί νέος ---
                 if (currentCube) {
                     boardGroup.remove(currentCube);
                     currentCube = null;
                 }
-                // --- ΤΕΛΟΣ ΔΙΟΡΘΩΣΗΣ ---
 
                 let maxOnBoard = 4; 
                 for (let c = 0; c < COLS; c++)
@@ -2187,12 +2181,9 @@
                 const c = aimCol; 
                 const h = colHeight(c); 
 
-                // --- ΔΙΟΡΘΩΣΗ: Αν η στήλη είναι γεμάτη, ακύρωσε τη ρίψη ---
                 if (h >= ROWS) { 
-                    // Κανένας κύβος δεν χάνεται, ο παίκτης πρέπει να στοχεύσει αλλού
                     return; 
                 }
-                // --- ΤΕΛΟΣ ΔΙΟΡΘΩΣΗΣ ---
 
                 busy = true;
                 lastActionTime = performance.now();
@@ -2209,7 +2200,7 @@
                 const targetR = h;
                 const p = cellPos(c, targetR); 
                 const cube = currentCube;
-                currentCube = null; // Αφαιρούμε αμέσως την αναφορά για να μην γίνουν διπλές ρίψεις
+                currentCube = null; 
                 
                 tween(cube.position, { y: p.y }, Math.max(0.13, Math.abs(cube.position.y - p.y) * 0.045), null,
                 function() { 
@@ -2218,7 +2209,6 @@
                     cell.mesh.scale.set(1.15, 0.85, 1.15);
                     tween(cell.mesh.scale, { x: 1, y: 1, z: 1 }, 0.18);
                     resolveMerges([{ c: c, r: targetR }]).then(function() { 
-                        // Ο έλεγχος του Game Over γίνεται ΜΟΝΟ αφού ελεγχθεί όλο το ταμπλό
                         if (isBoardFull()) { 
                             gameOver(); 
                             return; 
@@ -2247,13 +2237,11 @@
                         if (!queue.length) { persist();
                             updateMissionProgress();
                             
-                            // --- Έλεγχος για γεμάτο ταμπλό στο τέλος όλων των συγχωνεύσεων ---
                             if (isBoardFull() && !gameOver) {
                                 gameOver();
                                 resolveAll(); 
                                 return;
                             }
-                            // ---
 
                             resolveAll(); return; } 
                         const item = queue.shift(); 
@@ -2333,9 +2321,6 @@
                 }); 
             }
 
-            // ============================================================
-            //   WIN / LEVEL UP / GAME OVER (ΜΕ ΤΙΣ ΔΙΚΕΣ ΜΟΥ ΠΡΟΣΘΗΚΕΣ)
-            // ============================================================
             function checkWin() { 
                 const t = levelTarget(level); 
                 let win = false; 
@@ -2385,9 +2370,6 @@
                 document.getElementById("loseModal").classList.remove("hidden"); 
             }
 
-            // ============================================================
-            //   ON TAP (ΑΥΤΟΥΣΙΟ ΑΠΟ ΤΟ ΑΡΧΙΚΟ ΣΟΥ ΑΡΧΕΙΟ)
-            // ============================================================
             function onTap(e) { 
                 if (document.querySelector(".overlay:not(.hidden)")) return;
                 if (gameOver) return;
@@ -2448,10 +2430,6 @@
                 }
             }
 
-            // =================================================================
-            //   ΑΝΑΒΑΘΜΙΣΜΕΝΟ ΣΥΣΤΗΜΑ ΚΟΙΝΟΠΟΙΗΣΗΣ (Multi-File Share)
-            //   & ΑΝΑΒΑΘΜΙΣΜΕΝΑ OG TAGS
-            // =================================================================
             async function doShareAction(onSuccess) {
                 const scoreVal = score;
                 const shareData = {
@@ -2486,7 +2464,6 @@
                     navigator.share(shareData)
                         .then(function() { if (onSuccess) onSuccess(); })
                         .catch(function(e) { console.log(e); });
-                    // Honor system fallback
                     setTimeout(function() { if (onSuccess) onSuccess(); }, 2500); 
                 } else {
                     navigator.clipboard.writeText(shareData.text + " " + shareData.url);
@@ -2495,7 +2472,6 @@
                 }
             }
 
-            // ===== TIMER =====
             function updateTimerDisplay() {
                 const mins = Math.floor(timeRemaining / 60);
                 const secs = Math.floor(timeRemaining % 60);
@@ -2530,7 +2506,6 @@
                 document.getElementById("timeUpModal").classList.remove("hidden");
             }
 
-            // ===== SHOP =====
             function getShopProperties(tab) {
                 const map = { 
                     cubes: { owned: 'ownedCubes', equip: 'equippedCube' }, 
@@ -2901,25 +2876,36 @@
                 document.getElementById('winModal').classList.add('hidden');
             }
 
-            document.getElementById('btnClassic').onclick = function() { startGame('classic'); };
-            document.getElementById('btnTimeAttack').onclick = function() { startGame('timeattack'); };
-            document.getElementById('btnPlayAgainLose').onclick = function() {
+            document.getElementById('btnClassic').onpointerdown = function(e) { 
+                e.preventDefault(); 
+                startGame('classic'); 
+            };
+            document.getElementById('btnTimeAttack').onpointerdown = function(e) { 
+                e.preventDefault(); 
+                startGame('timeattack'); 
+            };
+            document.getElementById('btnPlayAgainLose').onpointerdown = function(e) {
+                e.preventDefault();
                 document.getElementById('loseModal').classList.add('hidden');
                 startGame(gameMode);
             };
-            document.getElementById('btnPlayAgainTimeUp').onclick = function() {
+            document.getElementById('btnPlayAgainTimeUp').onpointerdown = function(e) {
+                e.preventDefault();
                 document.getElementById('timeUpModal').classList.add('hidden');
                 startGame('timeattack');
             };
-            document.getElementById('btnShareLose').onclick = function() { 
+            document.getElementById('btnShareLose').onpointerdown = function(e) { 
+                e.preventDefault();
                 doShareAction(function(){ toast("Thanks for sharing!"); }); 
             };
-            document.getElementById('btnShareTimeUp').onclick = function() { 
+            document.getElementById('btnShareTimeUp').onpointerdown = function(e) { 
+                e.preventDefault();
                 doShareAction(function(){ toast("Thanks for sharing!"); }); 
             };
 
             // ===== HELPERS (with Diamond Cost) =====
-            document.getElementById('btnHammer').onclick = function() { 
+            document.getElementById('btnHammer').onpointerdown = function(e) { 
+                e.preventDefault();
                 if (busy || gameOver) return;
                 if (coins < 50) { toast(TT().not_enough); return; }
                 coins -= 50;
@@ -2930,7 +2916,8 @@
                 toast(TT().hammer_toast);
                 playSound('hammer'); 
             };
-            document.getElementById('btnShuffle').onclick = function() { 
+            document.getElementById('btnShuffle').onpointerdown = function(e) { 
+                e.preventDefault();
                 if (busy || !currentCube || gameOver) return;
                 if (coins < 50) { toast(TT().not_enough); return; }
                 coins -= 50;
@@ -2943,7 +2930,8 @@
                 setAim(aimCol);
                 playSound('shuffle'); 
             };
-            document.getElementById('btnMagnet').onclick = function() { 
+            document.getElementById('btnMagnet').onpointerdown = function(e) { 
+                e.preventDefault();
                 if (busy || gameOver) return;
                 if (coins < 50) { toast(TT().not_enough); return; }
                 coins -= 50;
