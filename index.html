@@ -1935,9 +1935,9 @@
 
             function initThree() {
                 const canvas = document.getElementById("game");
-                if (!canvas) return;
+                if (!canvas) return null;
                 renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-                renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
                 scene = new THREE.Scene();
                 scene.background = new THREE.Color(0x8FD0F5);
                 camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 120);
@@ -1972,7 +1972,7 @@
                 updateGirlScreenPosition();
                 addEventListener("resize", onResize);
                 addEventListener("orientationchange", function() { setTimeout(onResize, 250); });
-                requestAnimationFrame(loop);
+                return renderer;
             }
 
             function updateBoardColorsLive() { const bData = SHOP.boards.find(function(b) { return b.id === save.equippedBoard; }) || SHOP.boards[0];
@@ -2854,15 +2854,20 @@
             // ===== BOOTSTRAP & MAIN MENU =====
             let isGameReady = false;
             let bootAttempted = false;
+            let bootInProgress = false;
 
             function bootGame() {
-                if (bootAttempted) return;
+                if (bootInProgress) return;
+                bootInProgress = true;
                 bootAttempted = true;
                 try {
-                    initThree(); 
-                    if (!renderer) {
-                        document.getElementById('mainMenu').innerHTML = '<div class="card"><h2>⚠️ WebGL Error</h2><p>Could not initialize 3D. Try reloading.</p></div>';
-                        document.getElementById('mainMenu').classList.remove('hidden');
+                    const mainMenu = document.getElementById('mainMenu');
+                    if (!mainMenu) return;
+
+                    const rendererResult = initThree(); 
+                    if (!rendererResult) {
+                        mainMenu.innerHTML = '<div class="card"><h2>⚠️ WebGL Error</h2><p>Could not initialize 3D. Try reloading or using a different browser.</p></div>';
+                        mainMenu.classList.remove('hidden');
                         return;
                     }
                     isGameReady = true;
@@ -2888,21 +2893,27 @@
                     cvs.addEventListener("pointerdown", onTap); 
                     if (!window.PointerEvent) { cvs.addEventListener("touchstart", onTap, { passive: true }); }
 
-                    document.getElementById('mainMenu').classList.remove('hidden');
+                    mainMenu.classList.remove('hidden');
                 } catch(e) {
                     console.error("Boot Error:", e);
-                    document.getElementById('mainMenu').innerHTML = '<div class="card"><h2>⚠️ Error</h2><p>' + e.message + '</p></div>';
-                    document.getElementById('mainMenu').classList.remove('hidden');
+                    const mainMenu = document.getElementById('mainMenu');
+                    if (mainMenu) {
+                        mainMenu.innerHTML = '<div class="card"><h2>⚠️ Error</h2><p>' + e.message + '</p></div>';
+                        mainMenu.classList.remove('hidden');
+                    }
+                } finally {
+                    bootInProgress = false;
                 }
             }
 
             function startGame(mode) {
-                // Αν η μηχανή 3D δεν έχει ακόμα φορτώσει, την πυροδοτούμε άμεσα
                 if (!isGameReady) {
-                    toast("Loading game, please wait...");
-                    if (!bootAttempted) {
-                        setTimeout(bootGame, 100);
+                    if (bootAttempted) {
+                        toast("Loading failed. Please refresh the page to try again.");
+                        return;
                     }
+                    toast("Loading game, please wait...");
+                    setTimeout(bootGame, 100);
                     return;
                 }
 
