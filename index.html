@@ -812,12 +812,14 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    </script>
     <script>
         (function() {
             'use strict';
 
-            // ===== Game Modes & State =====
+            // ===== Game State =====
+            let gameReady = false; // Κλειδί για να αποτραπούν τα νεκρά κουμπιά
             let gameMode = 'classic';
             let timeRemaining = 300;
             let timerInterval = null;
@@ -1017,13 +1019,13 @@
 
             function loadSave() {
                 try {
-                    const r = localStorage.getItem("drop2048-frankly-v21");
+                    const r = localStorage.getItem("drop2048-frankly-v22");
                     if (r) save = Object.assign({}, DEFAULT_SAVE, JSON.parse(r));
                 } catch (e) { console.warn('Load save error', e); }
             }
 
             function persist() {
-                try { localStorage.setItem("drop2048-frankly-v21", JSON.stringify(save)); } catch (e) {}
+                try { localStorage.setItem("drop2048-frankly-v22", JSON.stringify(save)); } catch (e) {}
             }
 
             let coins = 0, level = 0, score = 0, muted = false;
@@ -2093,8 +2095,11 @@
             // ============================================================
 
             function newBoard() { 
-                for (let c = 0; c < COLS; c++)
-                    for (let r = 0; r < ROWS; r++) { if (grid[c] && grid[c][r]) boardGroup.remove(grid[c][r].mesh); }
+                // Διαγραφή όλων των προηγούμενων κύβων
+                if (boardGroup) {
+                    for (let c = 0; c < COLS; c++)
+                        for (let r = 0; r < ROWS; r++) { if (grid[c] && grid[c][r]) boardGroup.remove(grid[c][r].mesh); }
+                }
                 grid = []; 
                 for (let c = 0; c < COLS; c++) { grid.push(new Array(ROWS).fill(null)); }
                 score = 0; 
@@ -2181,6 +2186,7 @@
                 const c = aimCol; 
                 const h = colHeight(c); 
 
+                // Αν η στήλη είναι γεμάτη, ακύρωσε τη ρίψη, κράτα τον κύβο.
                 if (h >= ROWS) { 
                     return; 
                 }
@@ -2236,13 +2242,11 @@
                     (function next() { 
                         if (!queue.length) { persist();
                             updateMissionProgress();
-                            
                             if (isBoardFull() && !gameOver) {
                                 gameOver();
                                 resolveAll(); 
                                 return;
                             }
-
                             resolveAll(); return; } 
                         const item = queue.shift(); 
                         const c = item.c, r = item.r; 
@@ -2430,6 +2434,9 @@
                 }
             }
 
+            // =================================================================
+            //   ΑΝΑΒΑΘΜΙΣΜΕΝΟ ΣΥΣΤΗΜΑ ΚΟΙΝΟΠΟΙΗΣΗΣ (Multi-File Share)
+            // =================================================================
             async function doShareAction(onSuccess) {
                 const scoreVal = score;
                 const shareData = {
@@ -2472,6 +2479,7 @@
                 }
             }
 
+            // ===== TIMER =====
             function updateTimerDisplay() {
                 const mins = Math.floor(timeRemaining / 60);
                 const secs = Math.floor(timeRemaining % 60);
@@ -2481,7 +2489,7 @@
 
             function startTimer() {
                 if (timerInterval) clearInterval(timerInterval);
-                timeRemaining = 300; // 5 minutes
+                timeRemaining = 300;
                 updateTimerDisplay();
                 document.getElementById('timer').classList.remove('hidden');
                 timerInterval = setInterval(function() {
@@ -2506,6 +2514,7 @@
                 document.getElementById("timeUpModal").classList.remove("hidden");
             }
 
+            // ===== SHOP =====
             function getShopProperties(tab) {
                 const map = { 
                     cubes: { owned: 'ownedCubes', equip: 'equippedCube' }, 
@@ -2848,6 +2857,9 @@
 
             // ===== BOOTSTRAP & MAIN MENU =====
             function startGame(mode) {
+                // Αν το παιχνίδι δεν είναι ακόμα έτοιμο, ακύρωσε την κίνηση
+                if (!gameReady) return; 
+
                 document.getElementById('mainMenu').classList.add('hidden');
                 gameMode = mode;
                 gameOver = false;
@@ -2876,36 +2888,25 @@
                 document.getElementById('winModal').classList.add('hidden');
             }
 
-            document.getElementById('btnClassic').onpointerdown = function(e) { 
-                e.preventDefault(); 
-                startGame('classic'); 
-            };
-            document.getElementById('btnTimeAttack').onpointerdown = function(e) { 
-                e.preventDefault(); 
-                startGame('timeattack'); 
-            };
-            document.getElementById('btnPlayAgainLose').onpointerdown = function(e) {
-                e.preventDefault();
+            document.getElementById('btnClassic').onclick = function() { startGame('classic'); };
+            document.getElementById('btnTimeAttack').onclick = function() { startGame('timeattack'); };
+            document.getElementById('btnPlayAgainLose').onclick = function() {
                 document.getElementById('loseModal').classList.add('hidden');
                 startGame(gameMode);
             };
-            document.getElementById('btnPlayAgainTimeUp').onpointerdown = function(e) {
-                e.preventDefault();
+            document.getElementById('btnPlayAgainTimeUp').onclick = function() {
                 document.getElementById('timeUpModal').classList.add('hidden');
                 startGame('timeattack');
             };
-            document.getElementById('btnShareLose').onpointerdown = function(e) { 
-                e.preventDefault();
+            document.getElementById('btnShareLose').onclick = function() { 
                 doShareAction(function(){ toast("Thanks for sharing!"); }); 
             };
-            document.getElementById('btnShareTimeUp').onpointerdown = function(e) { 
-                e.preventDefault();
+            document.getElementById('btnShareTimeUp').onclick = function() { 
                 doShareAction(function(){ toast("Thanks for sharing!"); }); 
             };
 
-            // ===== HELPERS (with Diamond Cost) =====
-            document.getElementById('btnHammer').onpointerdown = function(e) { 
-                e.preventDefault();
+            // ===== HELPERS =====
+            document.getElementById('btnHammer').onclick = function() { 
                 if (busy || gameOver) return;
                 if (coins < 50) { toast(TT().not_enough); return; }
                 coins -= 50;
@@ -2916,8 +2917,7 @@
                 toast(TT().hammer_toast);
                 playSound('hammer'); 
             };
-            document.getElementById('btnShuffle').onpointerdown = function(e) { 
-                e.preventDefault();
+            document.getElementById('btnShuffle').onclick = function() { 
                 if (busy || !currentCube || gameOver) return;
                 if (coins < 50) { toast(TT().not_enough); return; }
                 coins -= 50;
@@ -2930,8 +2930,7 @@
                 setAim(aimCol);
                 playSound('shuffle'); 
             };
-            document.getElementById('btnMagnet').onpointerdown = function(e) { 
-                e.preventDefault();
+            document.getElementById('btnMagnet').onclick = function() { 
                 if (busy || gameOver) return;
                 if (coins < 50) { toast(TT().not_enough); return; }
                 coins -= 50;
@@ -2991,7 +2990,7 @@
             // ============================================================
             (function() {
                 try { 
-                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12', 'drop2048-frankly-v13', 'drop2048-frankly-v14', 'drop2048-frankly-v15', 'drop2048-frankly-v16', 'drop2048-frankly-v17', 'drop2048-frankly-v18', 'drop2048-frankly-v19', 'drop2048-frankly-v20'];
+                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12', 'drop2048-frankly-v13', 'drop2048-frankly-v14', 'drop2048-frankly-v15', 'drop2048-frankly-v16', 'drop2048-frankly-v17', 'drop2048-frankly-v18', 'drop2048-frankly-v19', 'drop2048-frankly-v20', 'drop2048-frankly-v21'];
                     keys.forEach(function(k) { localStorage.removeItem(k); }); 
                 } catch (e) {}
 
@@ -3110,6 +3109,7 @@
                             document.body.innerHTML = '<div style="text-align:center;padding:20px;font-family:sans-serif;margin-top:100px;">WebGL error: Renderer failed to initialize.</div>';
                             return;
                         }
+                        gameReady = true; // Το παιχνίδι είναι πλέον έτοιμο!
                         newBoard();
                         updateHUD();
                         applyLang();
