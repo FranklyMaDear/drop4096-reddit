@@ -2212,7 +2212,7 @@
                     tween(cell.mesh.scale, { x: 1, y: 1, z: 1 }, 0.18);
                     resolveMerges([{ c: c, r: targetR }]).then(function() { 
                         if (isBoardFull()) { 
-                            gameOver(); 
+                            triggerGameOver(); 
                             return; 
                         } 
                         if (checkWin()) { busy = false; spawnCurrent(); setAim(aimCol); return; } 
@@ -2239,7 +2239,7 @@
                         if (!queue.length) { persist();
                             updateMissionProgress();
                             if (isBoardFull() && !gameOver) {
-                                gameOver();
+                                triggerGameOver();
                                 resolveAll(); 
                                 return;
                             }
@@ -2353,7 +2353,7 @@
                 return true; 
             }
 
-            function gameOver() { 
+            function triggerGameOver() { 
                 busy = true;
                 gameOver = true;
                 if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
