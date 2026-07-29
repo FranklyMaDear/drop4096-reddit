@@ -818,10 +818,9 @@
         (function() {
             'use strict';
 
-            // ===== Game State =====
-            let gameReady = false; // Κλειδί για να αποτραπούν τα νεκρά κουμπιά
+            // ===== Game Modes & State =====
             let gameMode = 'classic';
-            let timeRemaining = 300;
+            let timeRemaining = 300; // 5 minutes (300 seconds)
             let timerInterval = null;
             let gameOver = false;
             let bestClassic = 0;
@@ -1019,13 +1018,13 @@
 
             function loadSave() {
                 try {
-                    const r = localStorage.getItem("drop2048-frankly-v22");
+                    const r = localStorage.getItem("drop2048-frankly-v23");
                     if (r) save = Object.assign({}, DEFAULT_SAVE, JSON.parse(r));
                 } catch (e) { console.warn('Load save error', e); }
             }
 
             function persist() {
-                try { localStorage.setItem("drop2048-frankly-v22", JSON.stringify(save)); } catch (e) {}
+                try { localStorage.setItem("drop2048-frankly-v23", JSON.stringify(save)); } catch (e) {}
             }
 
             let coins = 0, level = 0, score = 0, muted = false;
@@ -2093,9 +2092,7 @@
             // ============================================================
             //   Ο ΠΥΡΗΝΑΣ ΤΟΥ ΠΑΙΧΝΙΔΙΟΥ
             // ============================================================
-
             function newBoard() { 
-                // Διαγραφή όλων των προηγούμενων κύβων
                 if (boardGroup) {
                     for (let c = 0; c < COLS; c++)
                         for (let r = 0; r < ROWS; r++) { if (grid[c] && grid[c][r]) boardGroup.remove(grid[c][r].mesh); }
@@ -2134,7 +2131,6 @@
                     boardGroup.remove(currentCube);
                     currentCube = null;
                 }
-
                 let maxOnBoard = 4; 
                 for (let c = 0; c < COLS; c++)
                     for (let r = 0; r < ROWS; r++) if (grid[c][r]) maxOnBoard = Math.max(maxOnBoard, grid[c][r].value); 
@@ -2489,7 +2485,7 @@
 
             function startTimer() {
                 if (timerInterval) clearInterval(timerInterval);
-                timeRemaining = 300;
+                timeRemaining = 300; // 5 λεπτά
                 updateTimerDisplay();
                 document.getElementById('timer').classList.remove('hidden');
                 timerInterval = setInterval(function() {
@@ -2856,9 +2852,59 @@
             }
 
             // ===== BOOTSTRAP & MAIN MENU =====
+            let isGameReady = false;
+            let bootAttempted = false;
+
+            function bootGame() {
+                if (bootAttempted) return;
+                bootAttempted = true;
+                try {
+                    initThree(); 
+                    if (!renderer) {
+                        document.getElementById('mainMenu').innerHTML = '<div class="card"><h2>⚠️ WebGL Error</h2><p>Could not initialize 3D. Try reloading.</p></div>';
+                        document.getElementById('mainMenu').classList.remove('hidden');
+                        return;
+                    }
+                    isGameReady = true;
+                    newBoard();
+                    updateHUD();
+                    applyLang();
+                    updateSoundBtn();
+                    initMic();
+                    buildHair(save.equippedHair || 'hair_pigtails');
+                    equipClothes(save.equippedClothes || 'cl_none');
+                    equipShoes(save.equippedShoes || 'shoe_wood');
+                    equipProp(save.equippedProps || 'prop_none');
+
+                    const cvs = document.getElementById("game");
+                    cvs.addEventListener("pointermove", function(e) { 
+                        if (busy || !currentCube || gameOver) return; 
+                        const cx = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX; 
+                        const colWidth = window.innerWidth / COLS;
+                        let col = Math.floor(cx / colWidth);
+                        col = Math.max(0, Math.min(COLS - 1, col));
+                        setAim(col); 
+                    });
+                    cvs.addEventListener("pointerdown", onTap); 
+                    if (!window.PointerEvent) { cvs.addEventListener("touchstart", onTap, { passive: true }); }
+
+                    document.getElementById('mainMenu').classList.remove('hidden');
+                } catch(e) {
+                    console.error("Boot Error:", e);
+                    document.getElementById('mainMenu').innerHTML = '<div class="card"><h2>⚠️ Error</h2><p>' + e.message + '</p></div>';
+                    document.getElementById('mainMenu').classList.remove('hidden');
+                }
+            }
+
             function startGame(mode) {
-                // Αν το παιχνίδι δεν είναι ακόμα έτοιμο, ακύρωσε την κίνηση
-                if (!gameReady) return; 
+                // Αν η μηχανή 3D δεν έχει ακόμα φορτώσει, την πυροδοτούμε άμεσα
+                if (!isGameReady) {
+                    toast("Loading game, please wait...");
+                    if (!bootAttempted) {
+                        setTimeout(bootGame, 100);
+                    }
+                    return;
+                }
 
                 document.getElementById('mainMenu').classList.add('hidden');
                 gameMode = mode;
@@ -2990,7 +3036,7 @@
             // ============================================================
             (function() {
                 try { 
-                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12', 'drop2048-frankly-v13', 'drop2048-frankly-v14', 'drop2048-frankly-v15', 'drop2048-frankly-v16', 'drop2048-frankly-v17', 'drop2048-frankly-v18', 'drop2048-frankly-v19', 'drop2048-frankly-v20', 'drop2048-frankly-v21'];
+                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12', 'drop2048-frankly-v13', 'drop2048-frankly-v14', 'drop2048-frankly-v15', 'drop2048-frankly-v16', 'drop2048-frankly-v17', 'drop2048-frankly-v18', 'drop2048-frankly-v19', 'drop2048-frankly-v20', 'drop2048-frankly-v21', 'drop2048-frankly-v22'];
                     keys.forEach(function(k) { localStorage.removeItem(k); }); 
                 } catch (e) {}
 
@@ -3102,42 +3148,8 @@
                 bestClassic = save.bestClassic || 0;
                 bestTimeAttack = save.bestTimeAttack || 0;
 
-                setTimeout(function() {
-                    try {
-                        initThree(); 
-                        if (!renderer) {
-                            document.body.innerHTML = '<div style="text-align:center;padding:20px;font-family:sans-serif;margin-top:100px;">WebGL error: Renderer failed to initialize.</div>';
-                            return;
-                        }
-                        gameReady = true; // Το παιχνίδι είναι πλέον έτοιμο!
-                        newBoard();
-                        updateHUD();
-                        applyLang();
-                        updateSoundBtn();
-                        initMic();
-                        buildHair(save.equippedHair || 'hair_pigtails');
-                        equipClothes(save.equippedClothes || 'cl_none');
-                        equipShoes(save.equippedShoes || 'shoe_wood');
-                        equipProp(save.equippedProps || 'prop_none');
-
-                        const cvs = document.getElementById("game");
-                        cvs.addEventListener("pointermove", function(e) { 
-                            if (busy || !currentCube || gameOver) return; 
-                            const cx = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX; 
-                            const colWidth = window.innerWidth / COLS;
-                            let col = Math.floor(cx / colWidth);
-                            col = Math.max(0, Math.min(COLS - 1, col));
-                            setAim(col); 
-                        });
-                        cvs.addEventListener("pointerdown", onTap); 
-                        if (!window.PointerEvent) { cvs.addEventListener("touchstart", onTap, { passive: true }); }
-
-                        document.getElementById('mainMenu').classList.remove('hidden');
-                    } catch(e) {
-                        document.body.innerHTML = '<div style="text-align:center;padding:20px;font-family:sans-serif;margin-top:100px;">⚠️ ERROR: ' + e.message + ' <br><br>Try tapping the screen first or reload.</div>';
-                        console.error(e);
-                    }
-                }, 200); 
+                // Ξεκινάμε το boot με μικρή καθυστέρηση
+                setTimeout(bootGame, 300); 
             })();
 
         })();
