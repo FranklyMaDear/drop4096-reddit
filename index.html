@@ -178,6 +178,9 @@
             letter-spacing: 1.5px;
         }
         #shopRollup .mini-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
             font-size: 13px;
             opacity: 0.9;
             background: rgba(255, 255, 255, 0.2);
@@ -185,6 +188,9 @@
             border-radius: 12px;
             margin-left: 8px;
             font-weight: 700;
+        }
+        #miniCoinsDisplay {
+            color: #F5C542;
         }
 
         .shop-panel {
@@ -498,6 +504,18 @@
         #shopModal #btnCloseShop {
             margin-bottom: 8px;
         }
+        .shop-modal-coins {
+            position: absolute;
+            right: 0;
+            background: var(--panel-deep);
+            color: var(--coin);
+            border-radius: 14px;
+            padding: 6px 14px;
+            font-weight: 800;
+            font-size: 16px;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, .3);
+            white-space: nowrap;
+        }
         @keyframes pop {
             from { transform: scale(.7); opacity: 0; }
         }
@@ -721,7 +739,7 @@
     </div>
 
     <div class="rollup-tab" id="shopRollup">
-        🛒 SHOP <span class="mini-score" id="miniScore">0</span>
+        🛒 SHOP <span class="mini-score" id="miniScoreWrapper"><span id="miniScore">0</span> | 💎 <span id="miniCoinsDisplay">100</span></span>
     </div>
 
     <div class="shop-panel" id="shopPanel">
@@ -752,7 +770,10 @@
 
     <div class="overlay hidden" id="shopModal">
         <div class="card">
-            <h2 style="margin-bottom:10px;" id="shopTitle">🛍️ Customize</h2>
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px; position:relative;">
+                <h2 style="margin-bottom:0;" id="shopTitle">🛍️ Customize</h2>
+                <div class="shop-modal-coins" id="shopModalCoinsWrap">💎 <span id="shopModalCoins">100</span></div>
+            </div>
             <div class="shop-tabs" id="mainTabs">
                 <button class="shop-tab active" data-maintab="cubes">Cubes</button>
                 <button class="shop-tab" data-maintab="boards">Boards</button>
@@ -2263,8 +2284,19 @@
                         score += newVal;
                         save.score = score;
                         if (newVal > biggestTile) biggestTile = newVal;
-                        coins += 1;
-                        save.coins = coins;
+                        
+                        // ===== Αλλαγή: Προσθήκη κερδών διαμαντιών με toast =====
+                        if (newVal >= 128) {
+                            coins += 5;
+                            save.coins = coins;
+                            toast("🎉 +5 💎"); 
+                        } else {
+                            coins += 1;
+                            save.coins = coins;
+                            toast("+1 💎");
+                        }
+                        // ======================================================
+
                         updateHUD(); 
                         let left = same.length; 
                         const tp = cellPos(c, r);
@@ -2295,11 +2327,8 @@
                             }
                             if (newVal >= 128 && !shownAchievements[newVal] && !gameOver) {
                                 shownAchievements[newVal] = true;
-                                coins += 5;
-                                save.coins = coins;
-                                persist();
-                                updateHUD();
-                                toast("🎉 Achievement +5 diamonds!");
+                                // Εδώ κερδίζει 5 διαμάντια (γίνεται ήδη στο πάνω μέρος, αλλά το αφήνουμε για το toast)
+                                // Toast γίνεται πάνω.
                             }
                             boardGroup.remove(cell.mesh);
                             grid[c][r] = null; 
@@ -2339,6 +2368,7 @@
                     winShown = true;
                     coins += 25;
                     save.coins = coins;
+                    toast("🎉 +25 💎");
                     if (gameMode === 'classic') save.bestClassic = Math.max(save.bestClassic, score);
                     else save.bestTimeAttack = Math.max(save.bestTimeAttack, score);
                     save.level = level + 1;
@@ -2623,6 +2653,8 @@
                 document.getElementById("hudScore").textContent = score;
                 document.getElementById("hudCoins").textContent = coins;
                 document.getElementById("miniScore").textContent = score;
+                document.getElementById("miniCoinsDisplay").textContent = coins;
+                document.getElementById("shopModalCoins").textContent = coins;
                 document.getElementById("btnHammer").classList.toggle("armed", hammerMode);
                 updateMissionProgress();
             }
@@ -3124,6 +3156,7 @@
 
                 document.getElementById('btnShop').onclick = function() {
                     renderShop();
+                    updateHUD();
                     document.getElementById('shopModal').classList.remove('hidden');
                     if (shopPanelOpen) {
                         shopPanelOpen = false;
