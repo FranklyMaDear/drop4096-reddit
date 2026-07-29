@@ -351,6 +351,8 @@
             transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
             pointer-events: auto;
             box-shadow: -6px 4px 20px rgba(0, 0, 0, 0.25);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .help-panel.open {
             transform: translateY(-50%) translateX(0);
@@ -491,7 +493,10 @@
             border: none;
             border-radius: 0;
             padding-top: calc(14px + env(safe-area-inset-top));
-            padding-bottom: calc(14px + env(safe-area-inset-bottom));
+            padding-bottom: calc(36px + env(safe-area-inset-bottom));
+        }
+        #shopModal #btnCloseShop {
+            margin-bottom: 8px;
         }
         @keyframes pop {
             from { transform: scale(.7); opacity: 0; }
@@ -737,6 +742,7 @@
         <button class="pbtn" id="btnHammer">🔨<span class="cost">50💎</span></button>
         <button class="pbtn" id="btnShuffle">🔄<span class="cost">50💎</span></button>
         <button class="pbtn" id="btnMic">🎤<span class="cost" id="micCost">Talk</span></button>
+        <button class="pbtn" id="btnShareHelp" style="background:var(--blue); box-shadow:0 6px 0 #2d5a7a;">📤<span class="cost">Share</span></button>
     </div>
 
     <div id="speech"><span id="speechText">WOW!</span></div>
@@ -1027,7 +1033,7 @@
                 try { localStorage.setItem("drop2048-frankly-v23", JSON.stringify(save)); } catch (e) {}
             }
 
-            let coins = 0, level = 0, score = 0, muted = false;
+            let coins = 0, level = 0, score = 0, muted = false, biggestTile = 0;
             let shopPanelOpen = false, helpPanelOpen = false;
 
             const audioCtx = new(window.AudioContext || window.webkitAudioContext)();
@@ -2101,6 +2107,7 @@
                 for (let c = 0; c < COLS; c++) { grid.push(new Array(ROWS).fill(null)); }
                 score = 0; 
                 save.score = 0;
+                biggestTile = 0;
                 winShown = false;
                 updateHUD(); 
                 for (let i = 0; i < levelPreset(level); i++) { 
@@ -2255,6 +2262,7 @@
                         const newVal = cell.value * Math.pow(2, same.length);
                         score += newVal;
                         save.score = score;
+                        if (newVal > biggestTile) biggestTile = newVal;
                         coins += 1;
                         save.coins = coins;
                         updateHUD(); 
@@ -2434,10 +2442,10 @@
             //   ΑΝΑΒΑΘΜΙΣΜΕΝΟ ΣΥΣΤΗΜΑ ΚΟΙΝΟΠΟΙΗΣΗΣ (Multi-File Share)
             // =================================================================
             async function doShareAction(onSuccess) {
-                const scoreVal = score;
+                const tileVal = biggestTile || 2;
                 const shareData = {
                     title: 'Drop 4096 · FranklyGames',
-                    text: 'I scored ' + scoreVal + ' in Drop 4096! Can you beat my score? Play now!',
+                    text: 'I hit ' + tileVal + ' in Drop 4096! Can you beat it? Play now!',
                     url: 'https://franklymadear.github.io/drop4096-reddit/'
                 };
                 
@@ -3035,6 +3043,7 @@
                     grid[trg.c][trg.r] = null;
                     score += trg.newVal;
                     save.score = score; 
+                    if (trg.newVal > biggestTile) biggestTile = trg.newVal;
                     const up = placeCube(trg.c, trg.r, trg.newVal);
                     up.mesh.scale.set(1.5, 1.5, 1.5);
                     tween(up.mesh.scale, { x: 1, y: 1, z: 1 }, 0.25); 
@@ -3124,6 +3133,7 @@
                     }
                 };
                 document.getElementById('btnCloseShop').onclick = function() { document.getElementById('shopModal').classList.add('hidden'); };
+                document.getElementById('btnShareHelp').onclick = function() { doShareAction(); };
                 document.getElementById('btnSound').onclick = function() { 
                     muted = !muted;
                     save.muted = muted;
