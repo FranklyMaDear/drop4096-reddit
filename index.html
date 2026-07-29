@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Drop 4096 · Aziram</title>
+    
+    <!-- Open Graph Meta Tags for Rich Preview -->
+    <meta property="og:title" content="Drop 4096 · FranklyGames">
+    <meta property="og:description" content="I scored high in Drop 4096! Can you beat my score? Play now for free!">
+    <meta property="og:image" content="https://franklymadear.github.io/drop4096-reddit/photo.png">
+    <meta property="og:video" content="https://franklymadear.github.io/drop4096-reddit/video.mp4">
+    <meta property="og:video:type" content="video/mp4">
+    <meta property="og:url" content="https://franklymadear.github.io/drop4096-reddit/">
+    <meta name="twitter:card" content="summary_large_image">
+
     <style>
         :root {
             --bg: #87CEEB;
@@ -412,26 +422,25 @@
             box-shadow: 0 4px 16px rgba(0, 0, 0, .5);
         }
 
-        /* Smaller speech bubble to avoid blocking falling cubes */
         #speech {
             position: fixed;
             z-index: 22;
             pointer-events: none;
             font-weight: 800;
-            font-size: 14px; /* Reduced from 18px */
+            font-size: 14px;
             background: #ffffff;
             color: #333;
-            padding: 4px 10px; /* Reduced from 8px 18px */
-            border-radius: 12px; /* Reduced from 20px */
-            border: 2px solid var(--panel-deep); /* Reduced from 3px */
-            box-shadow: 2px 2px 0 var(--panel-deep); /* Reduced shadow */
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 2px solid var(--panel-deep);
+            box-shadow: 2px 2px 0 var(--panel-deep);
             transform: translate(-50%, -120%);
             opacity: 0;
             transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-            max-width: 45vw; /* Reduced from 65vw */
+            max-width: 45vw;
             white-space: normal;
             text-align: center;
-            line-height: 1.2; /* Tighter line spacing */
+            line-height: 1.2;
         }
         #speech.visible {
             opacity: 1;
@@ -442,11 +451,11 @@
             position: absolute;
             top: 100%;
             left: 50%;
-            margin-left: -6px; /* Adjusted for smaller size */
-            border-width: 8px; /* Reduced from 12px */
+            margin-left: -6px;
+            border-width: 8px;
             border-style: solid;
             border-color: #ffffff transparent transparent transparent;
-            filter: drop-shadow(0 2px 0 var(--panel-deep)); /* Adjusted shadow */
+            filter: drop-shadow(0 2px 0 var(--panel-deep));
         }
 
         .overlay {
@@ -811,7 +820,7 @@
 
             // ===== Game Modes & State =====
             let gameMode = 'classic';
-            let timeRemaining = 300; // Changed from 180 to 300 (5 minutes)
+            let timeRemaining = 300;
             let timerInterval = null;
             let gameOver = false;
             let bestClassic = 0;
@@ -1009,13 +1018,13 @@
 
             function loadSave() {
                 try {
-                    const r = localStorage.getItem("drop2048-frankly-v18");
+                    const r = localStorage.getItem("drop2048-frankly-v20");
                     if (r) save = Object.assign({}, DEFAULT_SAVE, JSON.parse(r));
                 } catch (e) { console.warn('Load save error', e); }
             }
 
             function persist() {
-                try { localStorage.setItem("drop2048-frankly-v18", JSON.stringify(save)); } catch (e) {}
+                try { localStorage.setItem("drop2048-frankly-v20", JSON.stringify(save)); } catch (e) {}
             }
 
             let coins = 0, level = 0, score = 0, muted = false;
@@ -2084,6 +2093,7 @@
             //   Ο ΠΥΡΗΝΑΣ ΤΟΥ ΠΑΙΧΝΙΔΙΟΥ (ΑΠΟ ΤΟ ΑΡΧΙΚΟ ΣΟΥ ΑΡΧΕΙΟ)
             //   ΔΙΑΤΗΡΗΜΕΝΟΣ ΑΥΤΟΥΣΙΟΣ. 
             //   ΑΛΛΑΓΗ: Το game over γίνεται ΜΟΝΟ όταν γεμίσει ΟΛΟ το ταμπλό (isBoardFull).
+            //   ΔΙΟΡΘΩΣΗ: Απαγόρευση ρίψης σε γεμάτη στήλη (για να μην βγαίνουν κύβοι κάτω).
             // ============================================================
 
             function newBoard() { 
@@ -2176,10 +2186,12 @@
                 if (busy || !currentCube || gameOver) return; 
                 const c = aimCol; 
                 const h = colHeight(c); 
-                
-                // --- ΑΛΛΑΓΗ: Δεν ελέγχουμε πια αν η στήλη είναι γεμάτη για να βγει game over ---
-                // if (h >= ROWS) { gameOver = true; gameOverHandler(); return; } 
-                // --- ΤΕΛΟΣ ΑΛΛΑΓΗΣ ---
+
+                // --- ΔΙΟΡΘΩΣΗ: Αν η στήλη είναι γεμάτη, ακύρωσε τη ρίψη ---
+                if (h >= ROWS) { 
+                    return; 
+                }
+                // --- ΤΕΛΟΣ ΔΙΟΡΘΩΣΗΣ ---
 
                 busy = true;
                 lastActionTime = performance.now();
@@ -2205,13 +2217,13 @@
                     tween(cell.mesh.scale, { x: 1, y: 1, z: 1 }, 0.18);
                     resolveMerges([{ c: c, r: targetR }]).then(function() { 
                         
-                        // --- ΑΛΛΑΓΗ: Έλεγχος μόνο για γεμάτο ταμπλό μετά τη συγχώνευση ---
+                        // --- Έλεγχος για γεμάτο ταμπλό μετά τη συγχώνευση ---
                         if (isBoardFull()) { 
                             gameOver = true; 
                             gameOverHandler(); 
                             return; 
                         }
-                        // --- ΤΕΛΟΣ ΑΛΛΑΓΗΣ ---
+                        // ---
 
                         if (checkWin()) { busy = false; spawnCurrent(); setAim(aimCol); return; } 
                         
@@ -2234,14 +2246,14 @@
                         if (!queue.length) { persist();
                             updateMissionProgress();
                             
-                            // --- ΑΛΛΑΓΗ: Έλεγχος για γεμάτο ταμπλό στο τέλος όλων των συγχωνεύσεων ---
+                            // --- Έλεγχος για γεμάτο ταμπλό στο τέλος όλων των συγχωνεύσεων ---
                             if (isBoardFull() && !gameOver) {
                                 gameOver = true;
                                 gameOverHandler();
                                 resolveAll(); 
                                 return;
                             }
-                            // --- ΤΕΛΟΣ ΑΛΛΑΓΗΣ ---
+                            // ---
 
                             resolveAll(); return; } 
                         const item = queue.shift(); 
@@ -2436,45 +2448,51 @@
                 }
             }
 
-            // ===== SHARE =====
-            function shareScore(scoreVal, mode) {
-                const text = "I scored " + scoreVal + " in Drop 4096! Can you beat my score? Play now!";
-                const url = "https://franklymadear.github.io/drop4096-reddit/";
-                const shareData = { title: "Drop 4096", text: text, url: url };
-                if (navigator.share) {
-                    navigator.share(shareData).catch(function(err) {
-                        console.warn('Share failed', err);
-                        copyToClipboard(text + " " + url);
-                    });
-                } else {
-                    copyToClipboard(text + " " + url);
-                }
-            }
+            // =================================================================
+            //   ΑΝΑΒΑΘΜΙΣΜΕΝΟ ΣΥΣΤΗΜΑ ΚΟΙΝΟΠΟΙΗΣΗΣ (Multi-File Share)
+            //   & ΑΝΑΒΑΘΜΙΣΜΕΝΑ OG TAGS
+            // =================================================================
+            async function doShareAction(onSuccess) {
+                const scoreVal = score;
+                const shareData = {
+                    title: 'Drop 4096 · FranklyGames',
+                    text: 'I scored ' + scoreVal + ' in Drop 4096! Can you beat my score? Play now!',
+                    url: 'https://franklymadear.github.io/drop4096-reddit/'
+                };
+                
+                const filesToShare = [];
 
-            function copyToClipboard(text) {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(text).then(function() {
-                        toast("📋 Score copied to clipboard!");
-                    }).catch(function() {
-                        fallbackCopy(text);
-                    });
-                } else {
-                    fallbackCopy(text);
-                }
-            }
-
-            function fallbackCopy(text) {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
                 try {
-                    document.execCommand('copy');
-                    toast("📋 Score copied!");
-                } catch (e) {
-                    toast("Could not copy. Here is your score: " + text);
+                    const resPhoto = await fetch('photo.png');
+                    if (resPhoto.ok) {
+                        const blobPhoto = await resPhoto.blob();
+                        filesToShare.push(new File([blobPhoto], 'photo.png', { type: blobPhoto.type }));
+                    }
+                } catch (err) { console.log("Photo load error", err); }
+
+                try {
+                    const resVideo = await fetch('video.mp4');
+                    if (resVideo.ok) {
+                        const blobVideo = await resVideo.blob();
+                        filesToShare.push(new File([blobVideo], 'video.mp4', { type: blobVideo.type }));
+                    }
+                } catch (err) { console.log("Video load error", err); }
+
+                if (filesToShare.length > 0 && navigator.canShare && navigator.canShare({ files: filesToShare })) {
+                    shareData.files = filesToShare;
                 }
-                document.body.removeChild(ta);
+
+                if (navigator.share) {
+                    navigator.share(shareData)
+                        .then(function() { if (onSuccess) onSuccess(); })
+                        .catch(function(e) { console.log(e); });
+                    // Honor system fallback
+                    setTimeout(function() { if (onSuccess) onSuccess(); }, 2500); 
+                } else {
+                    navigator.clipboard.writeText(shareData.text + " " + shareData.url);
+                    toast("Link copied! Paste it to challenge your friends!");
+                    if (onSuccess) onSuccess();
+                }
             }
 
             // ===== TIMER =====
@@ -2487,7 +2505,7 @@
 
             function startTimer() {
                 if (timerInterval) clearInterval(timerInterval);
-                timeRemaining = 300; // Changed to 5 minutes
+                timeRemaining = 300; // 5 minutes
                 updateTimerDisplay();
                 document.getElementById('timer').classList.remove('hidden');
                 timerInterval = setInterval(function() {
@@ -2893,8 +2911,12 @@
                 document.getElementById('timeUpModal').classList.add('hidden');
                 startGame('timeattack');
             };
-            document.getElementById('btnShareLose').onclick = function() { shareScore(score, gameMode); };
-            document.getElementById('btnShareTimeUp').onclick = function() { shareScore(score, 'timeattack'); };
+            document.getElementById('btnShareLose').onclick = function() { 
+                doShareAction(function(){ toast("Thanks for sharing!"); }); 
+            };
+            document.getElementById('btnShareTimeUp').onclick = function() { 
+                doShareAction(function(){ toast("Thanks for sharing!"); }); 
+            };
 
             // ===== HELPERS (with Diamond Cost) =====
             document.getElementById('btnHammer').onclick = function() { 
@@ -2981,7 +3003,7 @@
             // ============================================================
             (function() {
                 try { 
-                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12', 'drop2048-frankly-v13', 'drop2048-frankly-v14', 'drop2048-frankly-v15', 'drop2048-frankly-v16', 'drop2048-frankly-v17'];
+                    const keys = ['drop2048-save-pure', 'drop2048-save-v2', 'drop2048-save-v3', 'drop2048-save-v4', 'drop2048-v5', 'drop2048-frankly-v1', 'drop2048-frankly-v2', 'drop2048-frankly-v3', 'drop2048-frankly-v4', 'drop2048-frankly-v5', 'drop2048-frankly-v6', 'drop2048-frankly-v7', 'drop2048-frankly-v8', 'drop2048-frankly-v9', 'drop2048-frankly-v10', 'drop2048-frankly-v11', 'drop2048-frankly-v12', 'drop2048-frankly-v13', 'drop2048-frankly-v14', 'drop2048-frankly-v15', 'drop2048-frankly-v16', 'drop2048-frankly-v17', 'drop2048-frankly-v18', 'drop2048-frankly-v19'];
                     keys.forEach(function(k) { localStorage.removeItem(k); }); 
                 } catch (e) {}
 
